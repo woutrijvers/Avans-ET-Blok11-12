@@ -16,9 +16,9 @@
 const int modus = 1;  //Remote = 0, Car = 1
 
 //Debug levels
-#define DEBUG1 1
-#define DEBUG2 0
-#define DEBUG3 1
+#define DEBUG1 0
+#define DEBUG2 1
+#define DEBUG3 0
 //#define noPaverageseInterrupts 1  
 
 /*-Timer initialisations------------------------------------------------------*/
@@ -39,14 +39,19 @@ unsigned long W1_upload = 5000;
 // Assignment of the sensor pins 
 const int S0 = 22; 
 const int S1 = 23; 
-const int S2 = 33; 
-const int S3 = 32; 
-const int sensorOut = 35;  
+const int S2 = 21;//33; 
+const int S3 = 19;//32; 
+const int sensorOut = 5;//35;  
 
 const int PWM_Forward_RV = 4;     // GPIO4
 const int PWM_Back_RV    = 16;    // GPIO16
 const int PWM_Forward_LV = 2;     // GPIO2
 const int PWM_Back_LV    = 15;    // GPIO15
+
+const int PWM_Forward_RA = 0;     // GPIO
+const int PWM_Back_RA    = 0;    // GPIO
+const int PWM_Forward_LA = 0;     // GPIO
+const int PWM_Back_LA    = 0;    // GPIO
 
 const int ENC_LF = 17;
 const int ENC_RF = 18;
@@ -91,6 +96,10 @@ const int ledChannel_F_RV = 0;
 const int ledChannel_B_RV = 1;
 const int ledChannel_F_LV = 2;
 const int ledChannel_B_LV = 3;
+const int ledChannel_F_RA = 4;
+const int ledChannel_B_RA = 5;
+const int ledChannel_F_LA = 6;
+const int ledChannel_B_LA = 7;
 const int resolution = 8;
 
 //Motor encoder timer: Auxiliary variables
@@ -126,6 +135,7 @@ bool encRF_runned = false;
 unsigned long lastTrigger_LB = 0;
 unsigned long encoderP_LB = 0;
 unsigned long encoderT1_LB = 0;
+unsigned long encoderT2_LB = 0;
 unsigned long encoderF_LB = 0;  //mHz
 int actualSpeed_LB = 0; //mm/s
 bool encLB_runned = false;
@@ -133,6 +143,7 @@ bool encLB_runned = false;
 unsigned long lastTrigger_RB = 0;
 unsigned long encoderP_RB = 0;
 unsigned long encoderT1_RB = 0;
+unsigned long encoderT2_RB = 0;
 unsigned long encoderF_RB = 0;  //mHz
 int actualSpeed_RB = 0; //mm/s
 bool encRB_runned = false;
@@ -150,14 +161,6 @@ PID PID_LF(&Input_LF, &Output_LF, &Setpoint_LF, consKp, consKi, consKd, P_ON_E, 
 PID PID_RF(&Input_RF, &Output_RF, &Setpoint_RF, consKp, consKi, consKd, P_ON_E, DIRECT);
 PID PID_LB(&Input_LB, &Output_LB, &Setpoint_LB, consKp, consKi, consKd, P_ON_E, DIRECT);
 PID PID_RB(&Input_RB, &Output_RB, &Setpoint_RB, consKp, consKi, consKd, P_ON_E, DIRECT);
-
-//PID constants
-/*float kp = 0.001, ki = 0, kd = 0;
-unsigned long currentTime, previousTime;
-int elapsedTime;
-float error;
-float lastError;
-float cumError, rateError;*/
 
 //Motor output variables
 int Motor_LF = 0;
@@ -266,10 +269,12 @@ void IRAM_ATTR intruptLB()
   now = millis();
   if (now > lastTrigger_LB)
   {
-    encoderP_LB = now - lastTrigger_LB;
+    encoderT1_LB = now - lastTrigger_LB;
+    encoderP_LB = encoderT1_LB + encoderT2_LB;
     lastTrigger_LB = now;
+    encLB_runned = true;
+    encoderT2_LB = encoderT1_LB;
   }
-  encLB_runned = true;
 }
 
 void IRAM_ATTR intruptRB() 
@@ -277,36 +282,19 @@ void IRAM_ATTR intruptRB()
   now = millis();
   if (now > lastTrigger_RB)
   {
-    encoderP_RB = now - lastTrigger_RB;
+    encoderT1_RB = now - lastTrigger_RB;
+    encoderP_RB = encoderT1_RB + encoderT2_RB;
     lastTrigger_RB = now;
+    encRB_runned = true;
+    encoderT2_RB = encoderT1_RB;
   }
-  encRB_runned = true;
 }
-
-
-/*int computePID(float Input, float Setpoint){     
-        currentTime = millis();                //get current time
-        elapsedTime = (float)(currentTime - previousTime);        //compute time elapsed from previous computation
-        
-        error = Setpoint - Input;                                // determine error
-        cumError += error * elapsedTime;                // compute integral
-        rateError = (error - lastError)/elapsedTime;   // compute derivative
- 
-        float out = kp*error + ki*cumError + kd*rateError;                //PID output 
-
-        Serial.print("out:");
-        Serial.println(out);
- 
-        lastError = error;                                //remember current error
-        previousTime = currentTime;                        //remember current time
-        
-        return round(out);                                        //have function return the PID output
-}*/
 
 // Callback when data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-  if (DEBUG2)Serial.print("\r\nLast Packet Send Status:\t");
-  if (DEBUG2)Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+  if (DEBUG3)Serial.print("\r\nLast Packet Send Status:\t");
+  if (DEBUG3)Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+  return;
 }
 
 // Callback when data is received
@@ -322,8 +310,9 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     Communication.Control = CommunicationBuffer.Control;
     lastDownload = millis();
   }
-  if (DEBUG2) Serial.print("\r\nBytes received:\t");
-  if (DEBUG2) Serial.println(len);
+  if (DEBUG3) Serial.print("\r\nBytes received:\t");
+  if (DEBUG3) Serial.println(len);
+  return;
 }
 
 /*-Setup----------------------------------------------------------------------*/
@@ -391,12 +380,20 @@ void setup() {
   ledcSetup(ledChannel_B_RV, freqPWM, resolution);
   ledcSetup(ledChannel_F_LV, freqPWM, resolution);
   ledcSetup(ledChannel_B_LV, freqPWM, resolution);
+  ledcSetup(ledChannel_F_RA, freqPWM, resolution);
+  ledcSetup(ledChannel_B_RA, freqPWM, resolution);
+  ledcSetup(ledChannel_F_LA, freqPWM, resolution);
+  ledcSetup(ledChannel_B_LA, freqPWM, resolution);
   
   // attach the channel to the GPIO to be controlled
   ledcAttachPin(PWM_Forward_RV, ledChannel_F_RV);
   ledcAttachPin(PWM_Back_RV, ledChannel_B_RV);
   ledcAttachPin(PWM_Forward_LV, ledChannel_F_LV);
   ledcAttachPin(PWM_Back_LV, ledChannel_B_LV);
+  ledcAttachPin(PWM_Forward_RA, ledChannel_F_RA);
+  ledcAttachPin(PWM_Back_RA, ledChannel_B_RA);
+  ledcAttachPin(PWM_Forward_LA, ledChannel_F_LA);
+  ledcAttachPin(PWM_Back_LA, ledChannel_B_LA);
 
   // Intrupt encoder INPUT_PULLUP
   pinMode(ENC_LF, INPUT);
@@ -421,8 +418,8 @@ void setup() {
   PID_RB.SetSampleTime(1);
   
   //Scaling the output frequency     S0/S1     LOW/LOW=AUS, LOW/HIGH=2%,     HIGH/LOW=20%, HIGH/HIGH=100%
-  /*digitalWrite(S0, HIGH);   
-  digitalWrite(S1, HIGH);*/
+  digitalWrite(S0, HIGH);   
+  digitalWrite(S1, HIGH);
 }
 
 /*-Loop-----------------------------------------------------------------------*/
@@ -435,14 +432,12 @@ void loop() {
     //Sent control struct
     // Send message via ESP-NOW
     esp_err_t result = esp_now_send(receiverAddress, (uint8_t *) &Communication, sizeof(Communication));
-    if (DEBUG3 == 1){ 
-      if (result != ESP_OK) {
-        Serial.println("Error sending the data");
-        W1_upload = millis();
-      }
-      else if (result == ESP_OK){
-        lastUpload = millis();
-      }
+    if (result != ESP_OK) {
+      Serial.println("Error sending the data");
+      W1_upload = millis();
+    }
+    else if (result == ESP_OK){
+      lastUpload = millis();
     }
 
     if ((millis() - W1_upload) < (T1_interval*20)){
@@ -496,6 +491,50 @@ void loop() {
   else if (millis() - lastTrigger_RF > 100){
     actualSpeed_RF = 0;
   }
+
+  if (encLB_runned) {
+    encLB_runned = false;
+    //Calculate frequentie and speed in mm/s
+    encoderF_LB = (1000000 / encoderP_LB);         //mHz
+    if (encoderF_LB < 60000) {
+      int actualSpeedValue = round((float(encoderF_LB) / perimeterF) * perimeterWheel);  //mm/s
+
+      //Moving average FIR
+      mavg1_LB[0] = actualSpeedValue;
+      float mavg1_y = mavg_b[0] * mavg1_LB[0];
+      
+      for (int i= 5-1; i>0; i--){
+        mavg1_y += mavg_b[i] * mavg1_LB[i];
+        mavg1_LB[i] = mavg1_LB[i-1];
+      }
+      actualSpeed_LB = mavg1_y;
+    }
+  }
+  else if (millis() - lastTrigger_LB > 100){
+    actualSpeed_LB = 0;
+  }
+
+  if (encRB_runned) {
+    encRB_runned = false;
+    //Calculate frequentie and speed in mm/s
+    encoderF_RB = (1000000 / encoderP_RB);         //mHz
+    if (encoderF_RB < 60000) {
+      int actualSpeedValue = round((float(encoderF_RB) / perimeterF) * perimeterWheel);  //mm/s
+
+      //Moving average FIR
+      mavg1_RB[0] = actualSpeedValue;
+      float mavg1_y = mavg_b[0] * mavg1_RB[0];
+      
+      for (int i= 5-1; i>0; i--){
+        mavg1_y += mavg_b[i] * mavg1_RB[i];
+        mavg1_RB[i] = mavg1_RB[i-1];
+      }
+      actualSpeed_RB = mavg1_y;
+    }
+  }
+  else if (millis() - lastTrigger_RB > 100){
+    actualSpeed_RB = 0;
+  }
   
   //Timer 2
   if ((millis() - T2_prevMs) > T2_interval){
@@ -521,29 +560,27 @@ void loop() {
     Motor_LB = Output_LB;
     Motor_RB = Output_RB;
 
-    Serial.print("LF_SET:");
-    Serial.print(Setpoint_LF);
-    Serial.print(",");
-    Serial.print("LF_IN:");
-    Serial.print(Input_LF);
-    Serial.print(",");
-    Serial.print("LF_OUT:");
-    Serial.print(Output_LF);
-    Serial.print(",");
-    Serial.print("RF_SET:");
-    Serial.print(Setpoint_RF);
-    Serial.print(",");
-    Serial.print("RF_IN:");
-    Serial.print(Input_RF);
-    Serial.print(",");
-    Serial.print("RF_OUT:");
-    Serial.println(Output_RF);
-
-    ledcWrite(ledChannel_F_LV, Motor_LF);
-    ledcWrite(ledChannel_F_RV, Motor_RF);
-
+    if (DEBUG2){
+      Serial.print("LF_SET:");
+      Serial.print(Setpoint_LF);
+      Serial.print(",");
+      Serial.print("LF_IN:");
+      Serial.print(Input_LF);
+      Serial.print(",");
+      Serial.print("LF_OUT:");
+      Serial.print(Output_LF);
+      Serial.print(",");
+      Serial.print("RF_SET:");
+      Serial.print(Setpoint_RF);
+      Serial.print(",");
+      Serial.print("RF_IN:");
+      Serial.print(Input_RF);
+      Serial.print(",");
+      Serial.print("RF_OUT:");
+      Serial.println(Output_RF);
+    }
     
-    /*//speedLF forward and backwards
+    //speedLF forward and backwards
     if (Communication.Control.Motor.speedLF > 0) {
       ledcWrite(ledChannel_F_LV, Motor_LF);
     }
@@ -573,37 +610,34 @@ void loop() {
   
     //speedLB forward and backwards
     if (Communication.Control.Motor.speedLB > 0) {
-      ledcWrite(ledChannel_F_LV, Motor_LB);
+      ledcWrite(ledChannel_F_LA, Motor_LB);
     }
     else{
-      ledcWrite(ledChannel_F_LV, 0);
+      ledcWrite(ledChannel_F_LA, 0);
     }
     if (Communication.Control.Motor.speedLB < 0){
-      ledcWrite(ledChannel_B_LV, Motor_LB);
+      ledcWrite(ledChannel_B_LA, Motor_LB);
     }
     else{
-      ledcWrite(ledChannel_B_LV, 0);
+      ledcWrite(ledChannel_B_LA, 0);
     }
   
     //speedRB forward and backwards
     if (Communication.Control.Motor.speedRB > 0) {
-      ledcWrite(ledChannel_F_RV, Motor_RB);
+      ledcWrite(ledChannel_F_RA, Motor_RB);
     }
     else{
-      ledcWrite(ledChannel_F_RV, 0);
+      ledcWrite(ledChannel_F_RA, 0);
     }
     if (Communication.Control.Motor.speedRB < 0){
-      ledcWrite(ledChannel_B_RV, Motor_RB);
+      ledcWrite(ledChannel_B_RA, Motor_RB);
     }
     else{
-      ledcWrite(ledChannel_B_RV, 0);
-    }*/
+      ledcWrite(ledChannel_B_RA, 0);
+    }
   }
-  
-  
 
-  //TEST TODO DELETE
-  operatingMode = 5;
+  operatingMode = 8;
   
   switch (operatingMode){
     case 0:
@@ -617,12 +651,6 @@ void loop() {
     redColor = map(redFrequency, redMax, redMin, 255, 0);     if (redColor > 255) {       redColor = 255;     }     if (redColor < 0) {       redColor = 0;     }     
     
     //Output of frequency mapped to 0-255
-    if (DEBUG1 == 2){     
-      Serial.print("Red Frequency: ");     
-      Serial.println(redFrequency);     
-      Serial.print("R = ");     
-      Serial.println(redColor);
-    }
     Communication.Status.Color.red=redColor;
     operatingMode+=1;
     }
@@ -640,12 +668,6 @@ void loop() {
     if (greenColor < 0) {       greenColor = 0;     }     
     
     //Output of frequency mapped to 0-255
-    if (DEBUG1 == 2){
-      Serial.print("Green Frequency: ");     
-      Serial.println(greenFrequency);     
-      Serial.print("G = ");     
-      Serial.println(greenColor);
-    }
     Communication.Status.Color.green=greenColor;
     operatingMode+=1; 
     }  
@@ -662,16 +684,31 @@ void loop() {
     if (blueColor > 255) {       blueColor = 255;     }     if (blueColor < 0) {       blueColor = 0;     }     
     
     //Output of frequency mapped to 0-255
-    if (DEBUG1 == 2){
-      Serial.print("Blue Frequency: ");     
-      Serial.println(blueFrequency);     
-      Serial.print("B = ");     
-      Serial.println(blueColor);
-    }
     Communication.Status.Color.blue=blueColor;
     operatingMode=0;
     }
     break;      
+  }
+
+  if (DEBUG1){  
+      Serial.print("R:");     
+      Serial.print(redColor);
+      Serial.print(",");
+      Serial.print("G:");     
+      Serial.print(greenColor);
+      Serial.print(",");
+      Serial.print("B:");     
+      Serial.println(blueColor);
+  }
+  if (DEBUG3){  
+      Serial.print("FR:");     
+      Serial.print(redFrequency);
+      Serial.print(",");
+      Serial.print("FG:");     
+      Serial.print(greenFrequency);
+      Serial.print(",");
+      Serial.print("FB:");     
+      Serial.println(blueFrequency);
   }
 
   //Upload/download safety
