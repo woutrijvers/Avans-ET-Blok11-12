@@ -74,6 +74,17 @@ bool Level1, Level2, Level3;
 int speedStraight;
 int deadZone = 30;
 
+//Questions
+typedef struct Question_struct
+{
+  String question = "empty";
+  bool answer = false;
+  bool answered = false;
+}Question_struct;
+Question_struct questions[10];
+byte actQuestion = 0;
+bool questionAnswered = false;
+
 //Errors
 bool macError = false;
 bool espnowError = false;
@@ -394,6 +405,54 @@ void setup() {
   lcd.write(1);
   lcd.setCursor(18, 0);
   lcd.write(3);
+
+  //Init questions (max 40 characters)
+  questions[0].question = "Vraag nummer 0?";
+  questions[0].answer = true;
+  questions[0].answered = false;
+
+  questions[1].question = "Vraag nummer 1 op 2 regels?";
+  questions[1].answer = true;
+  questions[1].answered = false;
+
+  questions[2].question = "Vraag nummer 2 op 2 regels?";
+  questions[2].answer = true;
+  questions[2].answered = false;
+  
+  questions[3].question = "Vraag nummer 3 op 2 regels?";
+  questions[3].answer = true;
+  questions[3].answered = false;
+
+  questions[4].question = "Vraag nummer 4 op 2 regels?";
+  questions[4].answer = true;
+  questions[4].answered = false;
+  
+  questions[5].question = "Vraag nummer 5 op 2 regels?";
+  questions[5].answer = true;
+  questions[5].answered = false;
+  
+  questions[6].question = "Vraag nummer 6 op 2 regels?";
+  questions[6].answer = true;
+  questions[6].answered = false;
+  
+  questions[7].question = "Vraag nummer 7 op 2 regels?";
+  questions[7].answer = true;
+  questions[7].answered = false;
+  
+  questions[8].question = "Vraag nummer 8 op 2 regels?";
+  questions[8].answer = true;
+  questions[8].answered = false;
+  
+  questions[9].question = "Vraag nummer 9 op 2 regels?";
+  questions[9].answer = true;
+  questions[9].answered = false;
+  
+  questions[10].question = "Vraag nummer 10 op 2 regels?";
+  questions[10].answer = true;
+  questions[10].answered = false;
+
+  //Startup random question
+  actQuestion = byte(random(0, 11));
 }
 
 /*-Loop-----------------------------------------------------------------------*/
@@ -427,35 +486,6 @@ void loop() {
   //Timer 2
   if ((millis() - T2_prevMs) > T2_interval) {
     T2_prevMs = millis();
-
-    int x1, y1, x2, y2, x3, y3, x4, y4;
-    x1 = analogRead(JoyStick_X1); //  X1
-    y1 = analogRead(JoyStick_Y1); //  Y1
-    x2 = analogRead(JoyStick_X2); //  X2
-    y2 = analogRead(JoyStick_Y2); //  Y2
-    x3 = analogRead(JoyStick_X3); //  X3
-    y3 = analogRead(JoyStick_Y3); //  Y3
-    x4 = analogRead(JoyStick_X4); //  X4
-    y4 = analogRead(JoyStick_Y4); //  Y4
-
-    //Map joystick values
-    int X1 = map(x1, 0, 4095, -255, 255);
-    int Y1 = map(y1, 0, 4095, -255, 255);
-    int X2 = map(x2, 0, 4095, -255, 255);
-    int Y2 = map(y2, 0, 4095, -255, 255);
-    int X3 = map(x3, 0, 4095, -255, 255);
-    int Y3 = map(y3, 0, 4095, -255, 255);
-    int X4 = map(x4, 0, 4095, -255, 255);
-    int Y4 = map(y4, 0, 4095, -255, 255);
-
-    if (abs(X1) < 30) X1 = 0;
-    if (abs(Y1) < 30) Y1 = 0;
-    if (abs(X2) < 30) X2 = 0;
-    if (abs(Y2) < 30) Y2 = 0;
-    if (abs(X3) < 30) X3 = 0;
-    if (abs(Y3) < 30) Y3 = 0;
-    if (abs(X4) < 30) X4 = 0;
-    if (abs(Y4) < 30) Y4 = 0;
     
     //State machine
     switch (State)
@@ -463,7 +493,7 @@ void loop() {
       //INIT STATE
       case _INIT: {
         lcd.setCursor(0, 1);
-        lcd.print("Initializing");
+        lcd.print("----Initializing----");
 
         //Save joystick values to motor control
         Communication.Control.Motor.speedLF = 0;
@@ -493,7 +523,7 @@ void loop() {
       //_IDLE STATE
       case _IDLE: {
         lcd.setCursor(0, 1);
-        lcd.print("IDLE               ");
+        lcd.print("--------IDLE--------");
 
         //Save joystick values to motor control
         Communication.Control.Motor.speedLF = 0;
@@ -508,7 +538,7 @@ void loop() {
       //IDLE STATE
       case _PUZZLE: {
         lcd.setCursor(0, 1);
-        lcd.print("Fix the puzzle!");
+        lcd.print("---Fix the puzzle!--");
 
         Puzzle1 = digitalRead(PZL1);
         Puzzle2 = digitalRead(PZL2);
@@ -564,99 +594,13 @@ void loop() {
       //Ready STATE
       case _READY: {
         lcd.setCursor(0, 1);
-        lcd.print("Ready?             ");
+        lcd.print("-------Ready?-------");
         
         Serial.print(Level1);
         Serial.print(Level2);
-        Serial.println(Level3);
+        Serial.println(Level3);        
 
-        //Save joystick values to motor control
-        if (false){
-          speedStraight = sqrt(Y1*Y1 + X1*X1);
-
-          //forward right
-          if ((Y1 > deadZone && X1 > deadZone)){
-            Communication.Control.Motor.speedLF = speedStraight - (-1*X1);
-            Communication.Control.Motor.speedLB = speedStraight - (-1*X1);
-            Communication.Control.Motor.speedRF = speedStraight;
-            Communication.Control.Motor.speedRB = speedStraight;
-          }
-          //forward left
-          else if ((Y1 > deadZone && X1 < -deadZone)){
-            Communication.Control.Motor.speedLF = speedStraight;
-            Communication.Control.Motor.speedLB = speedStraight;
-            Communication.Control.Motor.speedRF = speedStraight - X1;
-            Communication.Control.Motor.speedRB = speedStraight - X1;
-          }
-          //forward
-          else if ((Y1 > deadZone && X1 > -deadZone && X1 < deadZone)){
-            Communication.Control.Motor.speedLF = speedStraight;
-            Communication.Control.Motor.speedLB = speedStraight;
-            Communication.Control.Motor.speedRF = speedStraight;
-            Communication.Control.Motor.speedRB = speedStraight;
-          }
-          //back right
-          else if ((Y1 < -deadZone && X1 > deadZone)){
-            Communication.Control.Motor.speedLF = -1*(speedStraight - (-1*X1));
-            Communication.Control.Motor.speedLB = -1*(speedStraight - (-1*X1));
-            Communication.Control.Motor.speedRF = speedStraight;
-            Communication.Control.Motor.speedRB = speedStraight;
-          }
-          //back left
-          else if ((Y1 < -deadZone && X1 < -deadZone)){
-            Communication.Control.Motor.speedLF = speedStraight;
-            Communication.Control.Motor.speedLB = speedStraight;
-            Communication.Control.Motor.speedRF = -1*(speedStraight - X1);
-            Communication.Control.Motor.speedRB = -1*(speedStraight - X1);
-          }
-          //backwards
-          else if ((Y1 < -deadZone && X1 > -deadZone && X1 < deadZone)){
-            Communication.Control.Motor.speedLF = (-1)*speedStraight;
-            Communication.Control.Motor.speedLB = (-1)*speedStraight;
-            Communication.Control.Motor.speedRF = (-1)*speedStraight;
-            Communication.Control.Motor.speedRB = (-1)*speedStraight;
-          }
-          //right
-          else if ((abs(Y1) < deadZone && X1 > deadZone )){
-            Communication.Control.Motor.speedLF = X1;
-            Communication.Control.Motor.speedLB = X1;
-            Communication.Control.Motor.speedRF = -X1;
-            Communication.Control.Motor.speedRB = -X1;
-          }
-          //left
-          else if ((abs(Y1) < deadZone && X1 < -deadZone )){
-            Communication.Control.Motor.speedLF = -X1;
-            Communication.Control.Motor.speedLB = -X1;
-            Communication.Control.Motor.speedRF = X1;
-            Communication.Control.Motor.speedRB = X1;
-          }
-          else {
-            Communication.Control.Motor.speedLF = 0;
-            Communication.Control.Motor.speedLB = 0;
-            Communication.Control.Motor.speedRF = 0;
-            Communication.Control.Motor.speedRB = 0;
-          }
-        }
-        else if (true){
-          Communication.Control.Motor.speedLF = Y1;
-          Communication.Control.Motor.speedRF = Y2;
-          Communication.Control.Motor.speedLB = Y1;
-          Communication.Control.Motor.speedRB = Y2;
-        }
-        else if (Level1){
-          Communication.Control.Motor.speedLF = Y1;
-          Communication.Control.Motor.speedRF = Y2;
-          Communication.Control.Motor.speedLB = Y3;
-          Communication.Control.Motor.speedRB = Y4;
-        }
-        else{
-          Communication.Control.Motor.speedLF = 0;
-          Communication.Control.Motor.speedRF = 0;
-          Communication.Control.Motor.speedLB = 0;
-          Communication.Control.Motor.speedRB = 0;
-      }
-
-        if (false)  //finishDetected
+        if (true)  //finishDetected
         {
           State = _RUNNING;
         }
@@ -669,13 +613,29 @@ void loop() {
         lcd.setCursor(18, 0);
         lcd.write(2);
         lcd.setCursor(0, 1);
-        lcd.print("Racing...         ");
+        lcd.print("-------Racing-------");
 
-        //Save joystick values to motor control
-        Communication.Control.Motor.speedLF = Y1;
-        Communication.Control.Motor.speedRF = Y2;
-        Communication.Control.Motor.speedLB = Y3;
-        Communication.Control.Motor.speedRB = Y4;
+        //New question
+        while (questions[actQuestion].answered == true){ 
+          actQuestion = byte(random(0, 11));
+        }
+        
+        //Display question
+        if (questions[actQuestion].question.length() <= 20){
+          lcd.setCursor(0, 2);
+          lcd.print(questions[0].question);
+        }
+        else if (questions[actQuestion].question.length() <= 40){
+          lcd.setCursor(0, 2);
+          lcd.print(questions[actQuestion].question.substring(0, 20));
+          lcd.setCursor(0, 3);
+          lcd.print(questions[actQuestion].question.substring(20, questions[actQuestion].question.length()));
+        }
+        else {
+          lcd.setCursor(0, 2);
+          lcd.print("Question to long...");
+        }
+          
 
         if (false)
         {
@@ -683,9 +643,125 @@ void loop() {
         }
       break;
       }
-    }
-  
+    }  
   }
+
+    int x1, y1, x2, y2, x3, y3, x4, y4;
+    x1 = analogRead(JoyStick_X1); //  X1
+    y1 = analogRead(JoyStick_Y1); //  Y1
+    x2 = analogRead(JoyStick_X2); //  X2
+    y2 = analogRead(JoyStick_Y2); //  Y2
+    x3 = analogRead(JoyStick_X3); //  X3
+    y3 = analogRead(JoyStick_Y3); //  Y3
+    x4 = analogRead(JoyStick_X4); //  X4
+    y4 = analogRead(JoyStick_Y4); //  Y4
+    
+    //Map joystick values
+    int X1 = map(x1, 0, 4095, -255, 255);
+    int Y1 = map(y1, 0, 4095, -255, 255);
+    int X2 = map(x2, 0, 4095, -255, 255);
+    int Y2 = map(y2, 0, 4095, -255, 255);
+    int X3 = map(x3, 0, 4095, -255, 255);
+    int Y3 = map(y3, 0, 4095, -255, 255);
+    int X4 = map(x4, 0, 4095, -255, 255);
+    int Y4 = map(y4, 0, 4095, -255, 255);
+    
+    if (abs(X1) < 30) X1 = 0;
+    if (abs(Y1) < 30) Y1 = 0;
+    if (abs(X2) < 30) X2 = 0;
+    if (abs(Y2) < 30) Y2 = 0;
+    if (abs(X3) < 30) X3 = 0;
+    if (abs(Y3) < 30) Y3 = 0;
+    if (abs(X4) < 30) X4 = 0;
+    if (abs(Y4) < 30) Y4 = 0;
+
+    //Save joystick values to motor control
+    if (State == _READY or State == _RUNNING){
+    if (false){
+      speedStraight = sqrt(Y1*Y1 + X1*X1);
+    
+      //forward right
+      if ((Y1 > deadZone && X1 > deadZone)){
+        Communication.Control.Motor.speedLF = speedStraight - (-1*X1);
+        Communication.Control.Motor.speedLB = speedStraight - (-1*X1);
+        Communication.Control.Motor.speedRF = speedStraight;
+        Communication.Control.Motor.speedRB = speedStraight;
+      }
+      //forward left
+      else if ((Y1 > deadZone && X1 < -deadZone)){
+        Communication.Control.Motor.speedLF = speedStraight;
+        Communication.Control.Motor.speedLB = speedStraight;
+        Communication.Control.Motor.speedRF = speedStraight - X1;
+        Communication.Control.Motor.speedRB = speedStraight - X1;
+      }
+      //forward
+      else if ((Y1 > deadZone && X1 > -deadZone && X1 < deadZone)){
+        Communication.Control.Motor.speedLF = speedStraight;
+        Communication.Control.Motor.speedLB = speedStraight;
+        Communication.Control.Motor.speedRF = speedStraight;
+        Communication.Control.Motor.speedRB = speedStraight;
+      }
+      //back right
+      else if ((Y1 < -deadZone && X1 > deadZone)){
+        Communication.Control.Motor.speedLF = -1*(speedStraight - (-1*X1));
+        Communication.Control.Motor.speedLB = -1*(speedStraight - (-1*X1));
+        Communication.Control.Motor.speedRF = speedStraight;
+        Communication.Control.Motor.speedRB = speedStraight;
+      }
+      //back left
+      else if ((Y1 < -deadZone && X1 < -deadZone)){
+        Communication.Control.Motor.speedLF = speedStraight;
+        Communication.Control.Motor.speedLB = speedStraight;
+        Communication.Control.Motor.speedRF = -1*(speedStraight - X1);
+        Communication.Control.Motor.speedRB = -1*(speedStraight - X1);
+      }
+      //backwards
+      else if ((Y1 < -deadZone && X1 > -deadZone && X1 < deadZone)){
+        Communication.Control.Motor.speedLF = (-1)*speedStraight;
+        Communication.Control.Motor.speedLB = (-1)*speedStraight;
+        Communication.Control.Motor.speedRF = (-1)*speedStraight;
+        Communication.Control.Motor.speedRB = (-1)*speedStraight;
+      }
+      //right
+      else if ((abs(Y1) < deadZone && X1 > deadZone )){
+        Communication.Control.Motor.speedLF = X1;
+        Communication.Control.Motor.speedLB = X1;
+        Communication.Control.Motor.speedRF = -X1;
+        Communication.Control.Motor.speedRB = -X1;
+      }
+      //left
+      else if ((abs(Y1) < deadZone && X1 < -deadZone )){
+        Communication.Control.Motor.speedLF = -X1;
+        Communication.Control.Motor.speedLB = -X1;
+        Communication.Control.Motor.speedRF = X1;
+        Communication.Control.Motor.speedRB = X1;
+      }
+      else {
+        Communication.Control.Motor.speedLF = 0;
+        Communication.Control.Motor.speedLB = 0;
+        Communication.Control.Motor.speedRF = 0;
+        Communication.Control.Motor.speedRB = 0;
+      }
+    }
+      else if (true){
+        Communication.Control.Motor.speedLF = Y1;
+        Communication.Control.Motor.speedRF = Y2;
+        Communication.Control.Motor.speedLB = Y1;
+        Communication.Control.Motor.speedRB = Y2;
+      }
+      else if (Level1){
+        Communication.Control.Motor.speedLF = Y1;
+        Communication.Control.Motor.speedRF = Y2;
+        Communication.Control.Motor.speedLB = Y3;
+        Communication.Control.Motor.speedRB = Y4;
+      }
+      else{
+        Communication.Control.Motor.speedLF = 0;
+        Communication.Control.Motor.speedRF = 0;
+        Communication.Control.Motor.speedLB = 0;
+        Communication.Control.Motor.speedRB = 0;
+      }
+    }
 
    //Make sure lastDownload is always less or equal than current time
    if (lastDownload > millis() )
