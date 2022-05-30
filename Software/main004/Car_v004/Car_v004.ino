@@ -17,36 +17,34 @@ const int modus = 1;  //Remote = 0, Car = 1
 
 //Debug levels
 #define DEBUG1 0
-#define DEBUG2 1
-#define DEBUG3 0
-//#define noPaverageseInterrupts 1  
+#define DEBUG2 0
+#define DEBUG3 1
+#define noPaverageseInterrupts 1  
 
 /*-Timer initialisations------------------------------------------------------*/
 //Init global timer variable
 
 //Timer 1
 unsigned long T1_prevMs = 0; //millis
-unsigned int T1_interval = 10; //millis
+unsigned int T1_interval = 5; //millis
 
 //Timer 2
 unsigned long T2_prevMs = 0; //millis
-unsigned int T2_interval = 20; //millis
+unsigned int T2_interval = 10; //millis
 
 //Broadcast-Error Watchdog
 unsigned long W1_upload = 5000;
 
 /*-I/O-pins-------------------------------------------------------------------*/
 // Assignment of the sensor pins 
-const int S0 = 22; 
-const int S1 = 23; 
-const int S2 = 21;//33; 
-const int S3 = 19;//32; 
-const int sensorOut = 5;//35;  
+const int S2 = 16;
+const int S3 = 15; 
+const int sensorOut = 4; 
 
-const int PWM_Forward_RV = 4;     // GPIO4
-const int PWM_Back_RV    = 16;    // GPIO16
-const int PWM_Forward_LV = 2;     // GPIO2
-const int PWM_Back_LV    = 15;    // GPIO15
+const int PWM_Forward_RV = 26;     // GPIO4
+const int PWM_Back_RV    = 26;    // GPIO16
+const int PWM_Forward_LV = 33;     // GPIO2
+const int PWM_Back_LV    = 32;    // GPIO15
 
 const int PWM_Forward_RA = 0;     // GPIO
 const int PWM_Back_RA    = 0;    // GPIO
@@ -113,6 +111,9 @@ float mavg1_LF[5] = { 0 };
 float mavg1_RF[5] = { 0 };
 float mavg1_LB[5] = { 0 };
 float mavg1_RB[5] = { 0 };
+float mavg1_R[5] = { 0 };
+float mavg1_G[5] = { 0 };
+float mavg1_B[5] = { 0 };
 float mavg_b[5] = { 0.2, 0.2, 0.2, 0.2, 0.2 };
 
 //Encoder LF
@@ -368,9 +369,8 @@ void setup() {
   // Register for a callback function that will be called when data is received
   esp_now_register_recv_cb(OnDataRecv);
 
-  /*definition of the sensor pins*/   
-  pinMode(S0, OUTPUT);   
-  pinMode(S1, OUTPUT);   
+  /*definition of the sensor pins*/  
+  //Scaling the output frequency     S0/S1     LOW/LOW=AUS, LOW/HIGH=2%,     HIGH/LOW=20%, HIGH/HIGH=100% 
   pinMode(S2, OUTPUT);   
   pinMode(S3, OUTPUT);   
   pinMode(sensorOut, INPUT);    
@@ -416,10 +416,6 @@ void setup() {
   PID_RF.SetSampleTime(1);
   PID_LB.SetSampleTime(1);
   PID_RB.SetSampleTime(1);
-  
-  //Scaling the output frequency     S0/S1     LOW/LOW=AUS, LOW/HIGH=2%,     HIGH/LOW=20%, HIGH/HIGH=100%
-  digitalWrite(S0, HIGH);   
-  digitalWrite(S1, HIGH);
 }
 
 /*-Loop-----------------------------------------------------------------------*/
@@ -638,54 +634,90 @@ void loop() {
   }
 
   operatingMode = 8;
-  
+
   switch (operatingMode){
     case 0:
     {    
-    //Determination of the photodiode type during measurement       S2/S3       LOW/LOW=RED, LOW/HIGH=BLUE,       HIGH/HIGH=GREEN, HIGH/LOW=CLEAR     
-    digitalWrite(S2, LOW);     
-    digitalWrite(S3, LOW);       
-    
-    //Frequency measurement of the specified color and its as-signment to an RGB value between 0-255     
-    float(redEdgeTime) = pulseIn(sensorOut, HIGH) + pulseIn(sensorOut, LOW);     float(redFrequency) = (1 / (redEdgeTime / 1000000));     
-    redColor = map(redFrequency, redMax, redMin, 255, 0);     if (redColor > 255) {       redColor = 255;     }     if (redColor < 0) {       redColor = 0;     }     
-    
-    //Output of frequency mapped to 0-255
-    Communication.Status.Color.red=redColor;
-    operatingMode+=1;
+      //Determination of the photodiode type during measurement       S2/S3       LOW/LOW=RED, LOW/HIGH=BLUE,       HIGH/HIGH=GREEN, HIGH/LOW=CLEAR     
+      digitalWrite(S2, LOW);     
+      digitalWrite(S3, LOW);       
+      
+      //Frequency measurement of the specified color and its as-signment to an RGB value between 0-255     
+      float(redEdgeTime) = pulseIn(sensorOut, HIGH, 50000) + pulseIn(sensorOut, LOW, 50000);     float(redFrequency) = (1 / (redEdgeTime / 1000000));     
+      redColor = map(redFrequency, redMax, redMin, 255, 0);     if (redColor > 255) {       redColor = 255;     }     if (redColor < 0) {       redColor = 0;     }     
+      
+      //Moving average FIR
+      mavg1_R[0] = redColor;
+      float mavg1_y = mavg_b[0] * mavg1_R[0];
+      
+      for (int i= 5-1; i>0; i--){
+        mavg1_y += mavg_b[i] * mavg1_R[i];
+        mavg1_R[i] = mavg1_R[i-1];
+      }
+      Communication.Status.Color.red = mavg1_y;
+
+      //Output of frequency mapped to 0-255
+      operatingMode+=1;
+      Serial.print("R:");     
+      Serial.print(Communication.Status.Color.red);
+      Serial.print(",");
     }
     break;   
 
     case 1: 
     {
-    digitalWrite(S2, HIGH);     
-    digitalWrite(S3, HIGH);     
-    
-    //Frequency measurement of the specified color and its as-signment to an RGB value between 0-255
-    float(greenEdgeTime) = pulseIn(sensorOut, HIGH) + pulseIn(sensorOut, LOW);     
-    float(greenFrequency) = (1 / (greenEdgeTime / 1000000));     
-    greenColor = map(greenFrequency, greenMax, greenMin, 255, 0);     if (greenColor > 255) {       greenColor = 255;     }     
-    if (greenColor < 0) {       greenColor = 0;     }     
-    
-    //Output of frequency mapped to 0-255
-    Communication.Status.Color.green=greenColor;
-    operatingMode+=1; 
+      digitalWrite(S2, HIGH);     
+      digitalWrite(S3, HIGH);     
+      
+      //Frequency measurement of the specified color and its as-signment to an RGB value between 0-255
+      float(greenEdgeTime) = pulseIn(sensorOut, HIGH, 50000) + pulseIn(sensorOut, LOW, 50000);     
+      float(greenFrequency) = (1 / (greenEdgeTime / 1000000));     
+      greenColor = map(greenFrequency, greenMax, greenMin, 255, 0);     if (greenColor > 255) {       greenColor = 255;     }     
+      if (greenColor < 0) {       greenColor = 0;     }     
+      
+      //Moving average FIR
+      mavg1_G[0] = greenColor;
+      float mavg1_y = mavg_b[0] * mavg1_G[0];
+      
+      for (int i= 5-1; i>0; i--){
+        mavg1_y += mavg_b[i] * mavg1_G[i];
+        mavg1_G[i] = mavg1_G[i-1];
+      }
+      Communication.Status.Color.green = mavg1_y;
+
+      //Output of frequency mapped to 0-255
+      operatingMode+=1;
+      Serial.print("G:");     
+      Serial.print(Communication.Status.Color.green);
+      Serial.print(",");
     }  
     break;
 
     case 2:
     {
-    digitalWrite(S2, LOW);     
-    digitalWrite(S3, HIGH);     
-    
-    //Frequency measurement of the specified color and its as-signment to an RGB value between 0-255  
-    float(blueEdgeTime) = pulseIn(sensorOut, HIGH) + pulseIn(sensorOut, LOW);     
-    float(blueFrequency) = (1 / (blueEdgeTime / 1000000));     blueColor = map(blueFrequency, blueMax, blueMin, 255, 0);     
-    if (blueColor > 255) {       blueColor = 255;     }     if (blueColor < 0) {       blueColor = 0;     }     
-    
-    //Output of frequency mapped to 0-255
-    Communication.Status.Color.blue=blueColor;
-    operatingMode=0;
+      digitalWrite(S2, LOW);     
+      digitalWrite(S3, HIGH);     
+      
+      //Frequency measurement of the specified color and its as-signment to an RGB value between 0-255  
+      float(blueEdgeTime) = pulseIn(sensorOut, HIGH, 50000) + pulseIn(sensorOut, LOW, 50000);     
+      float(blueFrequency) = (1 / (blueEdgeTime / 1000000));     blueColor = map(blueFrequency, blueMax, blueMin, 255, 0);     
+      if (blueColor > 255) {       blueColor = 255;     }     if (blueColor < 0) {       blueColor = 0;     }     
+      
+      //Moving average FIR
+      mavg1_B[0] = blueColor;
+      float mavg1_y = mavg_b[0] * mavg1_B[0];
+      
+      for (int i= 5-1; i>0; i--){
+        mavg1_y += mavg_b[i] * mavg1_B[i];
+        mavg1_B[i] = mavg1_B[i-1];
+      }
+      Communication.Status.Color.blue = mavg1_y;
+
+      //Output of frequency mapped to 0-255
+      operatingMode+=1;
+      Serial.print("B:");     
+      Serial.print(Communication.Status.Color.blue);
+      Serial.print(",");
     }
     break;      
   }

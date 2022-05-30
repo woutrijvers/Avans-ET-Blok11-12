@@ -16,7 +16,7 @@
 const int modus = 0;  //Remote = 0, Car = 1
 
 //Debug levels
-#define DEBUG1 1
+#define DEBUG1 0
 #define DEBUG2 0
 #define DEBUG3 1
 
@@ -26,11 +26,11 @@ const int modus = 0;  //Remote = 0, Car = 1
 
 //Timer 1
 unsigned long T1_prevMs = 0; //millis
-unsigned int T1_interval = 10; //millis
+unsigned int T1_interval = 5; //millis
 
 //Timer 1
 unsigned long T2_prevMs = 0; //millis
-unsigned int T2_interval = 20; //millis
+unsigned int T2_interval = 25; //millis
 
 //Broadcast-Error Watchdog
 unsigned long W1_upload = 5000;
@@ -83,7 +83,9 @@ typedef struct Question_struct
 }Question_struct;
 Question_struct questions[10];
 byte actQuestion = 0;
-bool questionAnswered = false;
+bool answeredTrue = false;
+bool answeredFalse = false;
+bool finished = false;
 
 //Errors
 bool macError = false;
@@ -266,8 +268,8 @@ void tone(byte pin, int freq) {
 
 // Callback when data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-  if (DEBUG2)Serial.print("\r\nLast Packet Send Status:\t");
-  if (DEBUG2)Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+  if (DEBUG3)Serial.print("\r\nLast Packet Send Status:\t");
+  if (DEBUG3)Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 }
 
 // Callback when data is received
@@ -283,8 +285,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     Communication.Control = CommunicationBuffer.Control;
     lastDownload = millis();
   }
-  if (DEBUG2) Serial.print("\r\nBytes received:\t");
-  if (DEBUG2) Serial.println(len);
+  if (DEBUG3) Serial.print("\r\nBytes received:\t");
+  if (DEBUG3) Serial.println(len);
 }
 
 /*-Setup----------------------------------------------------------------------*/
@@ -415,39 +417,39 @@ void setup() {
   questions[1].answer = true;
   questions[1].answered = false;
 
-  questions[2].question = "Vraag nummer 2 op 2 regels?";
+  questions[2].question = "Vraag nummer 2?";
   questions[2].answer = true;
   questions[2].answered = false;
   
-  questions[3].question = "Vraag nummer 3 op 2 regels?";
+  questions[3].question = "Vraag nummer 3?";
   questions[3].answer = true;
   questions[3].answered = false;
 
-  questions[4].question = "Vraag nummer 4 op 2 regels?";
+  questions[4].question = "Vraag nummer 4?";
   questions[4].answer = true;
   questions[4].answered = false;
   
-  questions[5].question = "Vraag nummer 5 op 2 regels?";
+  questions[5].question = "Vraag nummer 5?";
   questions[5].answer = true;
   questions[5].answered = false;
   
-  questions[6].question = "Vraag nummer 6 op 2 regels?";
+  questions[6].question = "Vraag nummer 6?";
   questions[6].answer = true;
   questions[6].answered = false;
   
-  questions[7].question = "Vraag nummer 7 op 2 regels?";
+  questions[7].question = "Vraag nummer 7?";
   questions[7].answer = true;
   questions[7].answered = false;
   
-  questions[8].question = "Vraag nummer 8 op 2 regels?";
+  questions[8].question = "Vraag nummer 8?";
   questions[8].answer = true;
   questions[8].answered = false;
   
-  questions[9].question = "Vraag nummer 9 op 2 regels?";
+  questions[9].question = "Vraag nummer 9?";
   questions[9].answer = true;
   questions[9].answered = false;
   
-  questions[10].question = "Vraag nummer 10 op 2 regels?";
+  questions[10].question = "Vraag nummer 10?";
   questions[10].answer = true;
   questions[10].answered = false;
 
@@ -486,6 +488,15 @@ void loop() {
   //Timer 2
   if ((millis() - T2_prevMs) > T2_interval) {
     T2_prevMs = millis();
+
+    /*Serial.print("R:");
+    Serial.print(Communication.Status.Color.red);
+    Serial.print(",");
+    Serial.print("G:");
+    Serial.print(Communication.Status.Color.green);
+    Serial.print(",");
+    Serial.print("B:");
+    Serial.println(Communication.Status.Color.blue);*/
     
     //State machine
     switch (State)
@@ -494,6 +505,11 @@ void loop() {
       case _INIT: {
         lcd.setCursor(0, 1);
         lcd.print("----Initializing----");
+        //Clear screen
+        lcd.setCursor(0, 2);
+        lcd.print("                    ");
+        lcd.setCursor(0, 3);
+        lcd.print("                    ");
 
         //Save joystick values to motor control
         Communication.Control.Motor.speedLF = 0;
@@ -524,6 +540,11 @@ void loop() {
       case _IDLE: {
         lcd.setCursor(0, 1);
         lcd.print("--------IDLE--------");
+        //Clear screen
+        lcd.setCursor(0, 2);
+        lcd.print("                    ");
+        lcd.setCursor(0, 3);
+        lcd.print("                    ");
 
         //Save joystick values to motor control
         Communication.Control.Motor.speedLF = 0;
@@ -539,6 +560,11 @@ void loop() {
       case _PUZZLE: {
         lcd.setCursor(0, 1);
         lcd.print("---Fix the puzzle!--");
+        //Clear screen
+        lcd.setCursor(0, 2);
+        lcd.print("                    ");
+        lcd.setCursor(0, 3);
+        lcd.print("                    ");
 
         Puzzle1 = digitalRead(PZL1);
         Puzzle2 = digitalRead(PZL2);
@@ -595,6 +621,11 @@ void loop() {
       case _READY: {
         lcd.setCursor(0, 1);
         lcd.print("-------Ready?-------");
+        //Clear screen
+        lcd.setCursor(0, 2);
+        lcd.print("                    ");
+        lcd.setCursor(0, 3);
+        lcd.print("                    ");
         
         Serial.print(Level1);
         Serial.print(Level2);
@@ -609,9 +640,6 @@ void loop() {
 
       //RUNNING STATE
       case _RUNNING: {
-        //Play sign
-        lcd.setCursor(18, 0);
-        lcd.write(2);
         lcd.setCursor(0, 1);
         lcd.print("-------Racing-------");
 
@@ -635,7 +663,6 @@ void loop() {
           lcd.setCursor(0, 2);
           lcd.print("Question to long...");
         }
-          
 
         if (false)
         {
@@ -646,169 +673,195 @@ void loop() {
     }  
   }
 
-    int x1, y1, x2, y2, x3, y3, x4, y4;
-    x1 = analogRead(JoyStick_X1); //  X1
-    y1 = analogRead(JoyStick_Y1); //  Y1
-    x2 = analogRead(JoyStick_X2); //  X2
-    y2 = analogRead(JoyStick_Y2); //  Y2
-    x3 = analogRead(JoyStick_X3); //  X3
-    y3 = analogRead(JoyStick_Y3); //  Y3
-    x4 = analogRead(JoyStick_X4); //  X4
-    y4 = analogRead(JoyStick_Y4); //  Y4
-    
-    //Map joystick values
-    int X1 = map(x1, 0, 4095, -255, 255);
-    int Y1 = map(y1, 0, 4095, -255, 255);
-    int X2 = map(x2, 0, 4095, -255, 255);
-    int Y2 = map(y2, 0, 4095, -255, 255);
-    int X3 = map(x3, 0, 4095, -255, 255);
-    int Y3 = map(y3, 0, 4095, -255, 255);
-    int X4 = map(x4, 0, 4095, -255, 255);
-    int Y4 = map(y4, 0, 4095, -255, 255);
-    
-    if (abs(X1) < 30) X1 = 0;
-    if (abs(Y1) < 30) Y1 = 0;
-    if (abs(X2) < 30) X2 = 0;
-    if (abs(Y2) < 30) Y2 = 0;
-    if (abs(X3) < 30) X3 = 0;
-    if (abs(Y3) < 30) Y3 = 0;
-    if (abs(X4) < 30) X4 = 0;
-    if (abs(Y4) < 30) Y4 = 0;
+  //RGB gewogen gemiddelde berekenen
 
-    //Save joystick values to motor control
-    if (State == _READY or State == _RUNNING){
-    if (false){
-      speedStraight = sqrt(Y1*Y1 + X1*X1);
-    
-      //forward right
-      if ((Y1 > deadZone && X1 > deadZone)){
-        Communication.Control.Motor.speedLF = speedStraight - (-1*X1);
-        Communication.Control.Motor.speedLB = speedStraight - (-1*X1);
-        Communication.Control.Motor.speedRF = speedStraight;
-        Communication.Control.Motor.speedRB = speedStraight;
-      }
-      //forward left
-      else if ((Y1 > deadZone && X1 < -deadZone)){
-        Communication.Control.Motor.speedLF = speedStraight;
-        Communication.Control.Motor.speedLB = speedStraight;
-        Communication.Control.Motor.speedRF = speedStraight - X1;
-        Communication.Control.Motor.speedRB = speedStraight - X1;
-      }
-      //forward
-      else if ((Y1 > deadZone && X1 > -deadZone && X1 < deadZone)){
-        Communication.Control.Motor.speedLF = speedStraight;
-        Communication.Control.Motor.speedLB = speedStraight;
-        Communication.Control.Motor.speedRF = speedStraight;
-        Communication.Control.Motor.speedRB = speedStraight;
-      }
-      //back right
-      else if ((Y1 < -deadZone && X1 > deadZone)){
-        Communication.Control.Motor.speedLF = -1*(speedStraight - (-1*X1));
-        Communication.Control.Motor.speedLB = -1*(speedStraight - (-1*X1));
-        Communication.Control.Motor.speedRF = speedStraight;
-        Communication.Control.Motor.speedRB = speedStraight;
-      }
-      //back left
-      else if ((Y1 < -deadZone && X1 < -deadZone)){
-        Communication.Control.Motor.speedLF = speedStraight;
-        Communication.Control.Motor.speedLB = speedStraight;
-        Communication.Control.Motor.speedRF = -1*(speedStraight - X1);
-        Communication.Control.Motor.speedRB = -1*(speedStraight - X1);
-      }
-      //backwards
-      else if ((Y1 < -deadZone && X1 > -deadZone && X1 < deadZone)){
-        Communication.Control.Motor.speedLF = (-1)*speedStraight;
-        Communication.Control.Motor.speedLB = (-1)*speedStraight;
-        Communication.Control.Motor.speedRF = (-1)*speedStraight;
-        Communication.Control.Motor.speedRB = (-1)*speedStraight;
-      }
-      //right
-      else if ((abs(Y1) < deadZone && X1 > deadZone )){
-        Communication.Control.Motor.speedLF = X1;
-        Communication.Control.Motor.speedLB = X1;
-        Communication.Control.Motor.speedRF = -X1;
-        Communication.Control.Motor.speedRB = -X1;
-      }
-      //left
-      else if ((abs(Y1) < deadZone && X1 < -deadZone )){
-        Communication.Control.Motor.speedLF = -X1;
-        Communication.Control.Motor.speedLB = -X1;
-        Communication.Control.Motor.speedRF = X1;
-        Communication.Control.Motor.speedRB = X1;
-      }
-      else {
-        Communication.Control.Motor.speedLF = 0;
-        Communication.Control.Motor.speedLB = 0;
-        Communication.Control.Motor.speedRF = 0;
-        Communication.Control.Motor.speedRB = 0;
-      }
+  //Eerst wit detecteren
+
+  //Kleuren rood, groen en zwart detecteren
+
+  int x1, y1, x2, y2, x3, y3, x4, y4;
+  x1 = analogRead(JoyStick_X1); //  X1
+  y1 = analogRead(JoyStick_Y1); //  Y1
+  x2 = analogRead(JoyStick_X2); //  X2
+  y2 = analogRead(JoyStick_Y2); //  Y2
+  x3 = analogRead(JoyStick_X3); //  X3
+  y3 = analogRead(JoyStick_Y3); //  Y3
+  x4 = analogRead(JoyStick_X4); //  X4
+  y4 = analogRead(JoyStick_Y4); //  Y4
+  
+  //Map joystick values
+  int X1 = map(x1, 0, 4095, -255, 255);
+  int Y1 = map(y1, 0, 4095, -255, 255);
+  int X2 = map(x2, 0, 4095, -255, 255);
+  int Y2 = map(y2, 0, 4095, -255, 255);
+  int X3 = map(x3, 0, 4095, -255, 255);
+  int Y3 = map(y3, 0, 4095, -255, 255);
+  int X4 = map(x4, 0, 4095, -255, 255);
+  int Y4 = map(y4, 0, 4095, -255, 255);
+  
+  if (abs(X1) < 30) X1 = 0;
+  if (abs(Y1) < 30) Y1 = 0;
+  if (abs(X2) < 30) X2 = 0;
+  if (abs(Y2) < 30) Y2 = 0;
+  if (abs(X3) < 30) X3 = 0;
+  if (abs(Y3) < 30) Y3 = 0;
+  if (abs(X4) < 30) X4 = 0;
+  if (abs(Y4) < 30) Y4 = 0;
+  
+  //Save joystick values to motor control
+  if (State == _READY or State == _RUNNING){
+  if (false){
+    speedStraight = sqrt(Y1*Y1 + X1*X1);
+  
+    //forward right
+    if ((Y1 > deadZone && X1 > deadZone)){
+      Communication.Control.Motor.speedLF = speedStraight - (-1*X1);
+      Communication.Control.Motor.speedLB = speedStraight - (-1*X1);
+      Communication.Control.Motor.speedRF = speedStraight;
+      Communication.Control.Motor.speedRB = speedStraight;
     }
-      else if (true){
-        Communication.Control.Motor.speedLF = Y1;
-        Communication.Control.Motor.speedRF = Y2;
-        Communication.Control.Motor.speedLB = Y1;
-        Communication.Control.Motor.speedRB = Y2;
-      }
-      else if (Level1){
-        Communication.Control.Motor.speedLF = Y1;
-        Communication.Control.Motor.speedRF = Y2;
-        Communication.Control.Motor.speedLB = Y3;
-        Communication.Control.Motor.speedRB = Y4;
-      }
-      else{
-        Communication.Control.Motor.speedLF = 0;
-        Communication.Control.Motor.speedRF = 0;
-        Communication.Control.Motor.speedLB = 0;
-        Communication.Control.Motor.speedRB = 0;
-      }
+    //forward left
+    else if ((Y1 > deadZone && X1 < -deadZone)){
+      Communication.Control.Motor.speedLF = speedStraight;
+      Communication.Control.Motor.speedLB = speedStraight;
+      Communication.Control.Motor.speedRF = speedStraight - X1;
+      Communication.Control.Motor.speedRB = speedStraight - X1;
     }
+    //forward
+    else if ((Y1 > deadZone && X1 > -deadZone && X1 < deadZone)){
+      Communication.Control.Motor.speedLF = speedStraight;
+      Communication.Control.Motor.speedLB = speedStraight;
+      Communication.Control.Motor.speedRF = speedStraight;
+      Communication.Control.Motor.speedRB = speedStraight;
+    }
+    //back right
+    else if ((Y1 < -deadZone && X1 > deadZone)){
+      Communication.Control.Motor.speedLF = -1*(speedStraight - (-1*X1));
+      Communication.Control.Motor.speedLB = -1*(speedStraight - (-1*X1));
+      Communication.Control.Motor.speedRF = speedStraight;
+      Communication.Control.Motor.speedRB = speedStraight;
+    }
+    //back left
+    else if ((Y1 < -deadZone && X1 < -deadZone)){
+      Communication.Control.Motor.speedLF = speedStraight;
+      Communication.Control.Motor.speedLB = speedStraight;
+      Communication.Control.Motor.speedRF = -1*(speedStraight - X1);
+      Communication.Control.Motor.speedRB = -1*(speedStraight - X1);
+    }
+    //backwards
+    else if ((Y1 < -deadZone && X1 > -deadZone && X1 < deadZone)){
+      Communication.Control.Motor.speedLF = (-1)*speedStraight;
+      Communication.Control.Motor.speedLB = (-1)*speedStraight;
+      Communication.Control.Motor.speedRF = (-1)*speedStraight;
+      Communication.Control.Motor.speedRB = (-1)*speedStraight;
+    }
+    //right
+    else if ((abs(Y1) < deadZone && X1 > deadZone )){
+      Communication.Control.Motor.speedLF = X1;
+      Communication.Control.Motor.speedLB = X1;
+      Communication.Control.Motor.speedRF = -X1;
+      Communication.Control.Motor.speedRB = -X1;
+    }
+    //left
+    else if ((abs(Y1) < deadZone && X1 < -deadZone )){
+      Communication.Control.Motor.speedLF = -X1;
+      Communication.Control.Motor.speedLB = -X1;
+      Communication.Control.Motor.speedRF = X1;
+      Communication.Control.Motor.speedRB = X1;
+    }
+    else {
+      Communication.Control.Motor.speedLF = 0;
+      Communication.Control.Motor.speedLB = 0;
+      Communication.Control.Motor.speedRF = 0;
+      Communication.Control.Motor.speedRB = 0;
+    }
+  }
+    else if (true){
+      Communication.Control.Motor.speedLF = Y1;
+      Communication.Control.Motor.speedRF = Y2;
+      Communication.Control.Motor.speedLB = Y1;
+      Communication.Control.Motor.speedRB = Y2;
+    }
+    else if (Level1){
+      Communication.Control.Motor.speedLF = Y1;
+      Communication.Control.Motor.speedRF = Y2;
+      Communication.Control.Motor.speedLB = Y3;
+      Communication.Control.Motor.speedRB = Y4;
+    }
+    else{
+      Communication.Control.Motor.speedLF = 0;
+      Communication.Control.Motor.speedRF = 0;
+      Communication.Control.Motor.speedLB = 0;
+      Communication.Control.Motor.speedRB = 0;
+    }
+  }
 
-   //Make sure lastDownload is always less or equal than current time
-   if (lastDownload > millis() )
-   {
-    lastDownload = millis();
-   }
+ if( State == _RUNNING){
+  //Play sign
+  lcd.setCursor(18, 0);
+  lcd.write(2);
+ }
+ else{
+  //Stop sign
+  lcd.setCursor(18, 0);
+  lcd.write(3);
+ }
 
-   //Upload/download symbol handling
-   if ( ( (millis() - lastUpload) < 100) and ( (millis() - lastDownload) < 100) ){
-    //Upload+Download sign
-    receiverError = false;
-    lcd.setCursor(19, 0);
-    lcd.write(4);
-   }
-   else if ( (millis() - lastUpload) < 100){
-    //Upload sign
-    receiverError = true;
-    lcd.setCursor(19, 0);
-    lcd.write(5);
-   }
-   else if ( (millis() - lastDownload) < 100) {
-    //Download sign
-    receiverError = false;
-    lcd.setCursor(19, 0);
-    lcd.write(5);
-   }
-   else {
-    //no communication: empty
-    receiverError = true;
-    lcd.setCursor(19, 0);
-    lcd.print(" ");
-   }
+ //Make sure lastDownload is always less or equal than current time
+ if (lastDownload > millis() )
+ {
+  lastDownload = millis();
+ }
 
-   //Error message on display
-   if (macError || transmitError || receiverError || espnowError || peerError) {
-    lcd.setCursor(17, 0);
-    lcd.write(1);
-    //To _ERROR state
-    State = _ERROR;
-    if (macError) { lcd.setCursor(0, 1);           lcd.print("Mac error           ");}
-    else if (transmitError) { lcd.setCursor(0, 1); lcd.print("Transmit error      ");}
-    else if (receiverError) { lcd.setCursor(0, 1); lcd.print("Receiver error      ");}
-    else if (espnowError) { lcd.setCursor(0, 1);   lcd.print("Espnow error        ");}
-    else if (peerError) { lcd.setCursor(0, 1);     lcd.print("Peer error          ");}
-   }
-   else if ((macError || transmitError || receiverError || espnowError || peerError) ==  false){
-    lcd.setCursor(17, 0);
-    lcd.write(0);
-   }
+ //Upload/download symbol handling
+ if ( ( (millis() - lastUpload) < 300) and ( (millis() - lastDownload) < 300) ){
+  //Upload+Download sign
+  transmitError = false;
+  receiverError = false;
+  lcd.setCursor(19, 0);
+  lcd.write(4);
+ }
+ else if ( (millis() - lastUpload) < 300){
+  //Upload sign
+  transmitError = false;
+  receiverError = true;
+  lcd.setCursor(19, 0);
+  lcd.write(5);
+ }
+ else if ( (millis() - lastDownload) < 300) {
+  //Download sign
+  transmitError = true;
+  receiverError = false;
+  lcd.setCursor(19, 0);
+  lcd.write(6);
+ }
+ else {
+  //no communication: empty
+  transmitError = true;
+  receiverError = true;
+  lcd.setCursor(19, 0);
+  lcd.print(" ");
+ }
+
+ //Error message on display
+ if (macError || transmitError || receiverError || espnowError || peerError) {
+  lcd.setCursor(17, 0);
+  lcd.write(1);
+  //To _ERROR state
+  State = _ERROR;
+  if (macError) { lcd.setCursor(0, 1);           lcd.print("Mac error           ");}
+  else if (transmitError) { lcd.setCursor(0, 1); lcd.print("Transmit error      ");}
+  else if (receiverError) { lcd.setCursor(0, 1); lcd.print("Receiver error      ");}
+  else if (espnowError) { lcd.setCursor(0, 1);   lcd.print("Espnow error        ");}
+  else if (peerError) { lcd.setCursor(0, 1);     lcd.print("Peer error          ");}
+  //Clear screen
+  lcd.setCursor(0, 2);
+  lcd.print("                    ");
+  lcd.setCursor(0, 3);
+  lcd.print("                    ");
+ }
+ else if ((macError || transmitError || receiverError || espnowError || peerError) ==  false){
+  lcd.setCursor(17, 0);
+  lcd.write(0);
+ }
 }
