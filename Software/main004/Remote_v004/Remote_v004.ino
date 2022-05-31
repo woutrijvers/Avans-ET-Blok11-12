@@ -83,6 +83,9 @@ typedef struct Question_struct
 }Question_struct;
 Question_struct questions[10];
 byte actQuestion = 0;
+
+//Colorsensor
+int averageRGB = 0;
 bool answeredTrue = false;
 bool answeredFalse = false;
 bool finished = false;
@@ -408,53 +411,6 @@ void setup() {
   lcd.setCursor(18, 0);
   lcd.write(3);
 
-  //Init questions (max 40 characters)
-  questions[0].question = "Vraag nummer 0?";
-  questions[0].answer = true;
-  questions[0].answered = false;
-
-  questions[1].question = "Vraag nummer 1 op 2 regels?";
-  questions[1].answer = true;
-  questions[1].answered = false;
-
-  questions[2].question = "Vraag nummer 2?";
-  questions[2].answer = true;
-  questions[2].answered = false;
-  
-  questions[3].question = "Vraag nummer 3?";
-  questions[3].answer = true;
-  questions[3].answered = false;
-
-  questions[4].question = "Vraag nummer 4?";
-  questions[4].answer = true;
-  questions[4].answered = false;
-  
-  questions[5].question = "Vraag nummer 5?";
-  questions[5].answer = true;
-  questions[5].answered = false;
-  
-  questions[6].question = "Vraag nummer 6?";
-  questions[6].answer = true;
-  questions[6].answered = false;
-  
-  questions[7].question = "Vraag nummer 7?";
-  questions[7].answer = true;
-  questions[7].answered = false;
-  
-  questions[8].question = "Vraag nummer 8?";
-  questions[8].answer = true;
-  questions[8].answered = false;
-  
-  questions[9].question = "Vraag nummer 9?";
-  questions[9].answer = true;
-  questions[9].answered = false;
-  
-  questions[10].question = "Vraag nummer 10?";
-  questions[10].answer = true;
-  questions[10].answered = false;
-
-  //Startup random question
-  actQuestion = byte(random(0, 11));
 }
 
 /*-Loop-----------------------------------------------------------------------*/
@@ -510,6 +466,54 @@ void loop() {
         lcd.print("                    ");
         lcd.setCursor(0, 3);
         lcd.print("                    ");
+
+        //Init questions (max 40 characters)
+        questions[0].question = "Vraag nummer 0?";
+        questions[0].answer = true;
+        questions[0].answered = false;
+      
+        questions[1].question = "Vraag nummer 1 op 2 regels?";
+        questions[1].answer = true;
+        questions[1].answered = false;
+      
+        questions[2].question = "Vraag nummer 2?";
+        questions[2].answer = true;
+        questions[2].answered = false;
+        
+        questions[3].question = "Vraag nummer 3?";
+        questions[3].answer = true;
+        questions[3].answered = false;
+      
+        questions[4].question = "Vraag nummer 4?";
+        questions[4].answer = true;
+        questions[4].answered = false;
+        
+        questions[5].question = "Vraag nummer 5?";
+        questions[5].answer = true;
+        questions[5].answered = false;
+        
+        questions[6].question = "Vraag nummer 6?";
+        questions[6].answer = true;
+        questions[6].answered = false;
+        
+        questions[7].question = "Vraag nummer 7?";
+        questions[7].answer = true;
+        questions[7].answered = false;
+        
+        questions[8].question = "Vraag nummer 8?";
+        questions[8].answer = true;
+        questions[8].answered = false;
+        
+        questions[9].question = "Vraag nummer 9?";
+        questions[9].answer = true;
+        questions[9].answered = false;
+        
+        questions[10].question = "Vraag nummer 10?";
+        questions[10].answer = true;
+        questions[10].answered = false;
+      
+        //Startup random question
+        actQuestion = byte(random(0, 11));
 
         //Save joystick values to motor control
         Communication.Control.Motor.speedLF = 0;
@@ -643,6 +647,18 @@ void loop() {
         lcd.setCursor(0, 1);
         lcd.print("-------Racing-------");
 
+        //Question answered?
+        if (answeredTrue or answeredFalse){
+          questions[actQuestion].answered = true;
+          //Boost or handicap
+          if (questions[actQuestion].answer and answeredTrue){
+            //Boost             
+          }
+          else if (questions[actQuestion].answer and answeredFalse){
+            //Handicap             
+          }
+        }
+
         //New question
         while (questions[actQuestion].answered == true){ 
           actQuestion = byte(random(0, 11));
@@ -673,11 +689,24 @@ void loop() {
     }  
   }
 
-  //RGB gewogen gemiddelde berekenen
-
-  //Eerst wit detecteren
-
+  //RGB gemiddelde berekenen
+  averageRGB = ( (Communication.Status.Color.red + Communication.Status.Color.green + Communication.Status.Color.blue) / 3);
   //Kleuren rood, groen en zwart detecteren
+  if(abs(averageRGB - Communication.Status.Color.red) > 50){
+    answeredTrue = false;
+    answeredFalse = true;
+    finished = false;
+  }
+  else if(abs(averageRGB - Communication.Status.Color.green) > 50){
+    answeredTrue = true;
+    answeredFalse = false;
+    finished = false;
+  }
+  else if(abs(averageRGB) < 50){
+    answeredTrue = false;
+    answeredFalse = false;
+    finished = true;
+  }
 
   int x1, y1, x2, y2, x3, y3, x4, y4;
   x1 = analogRead(JoyStick_X1); //  X1

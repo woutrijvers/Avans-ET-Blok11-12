@@ -17,8 +17,8 @@ const int modus = 1;  //Remote = 0, Car = 1
 
 //Debug levels
 #define DEBUG1 0
-#define DEBUG2 0
-#define DEBUG3 1
+#define DEBUG2 1
+#define DEBUG3 0 
 #define noPaverageseInterrupts 1  
 
 /*-Timer initialisations------------------------------------------------------*/
@@ -41,15 +41,15 @@ const int S2 = 16;
 const int S3 = 15; 
 const int sensorOut = 4; 
 
-const int PWM_Forward_RV = 26;     // GPIO4
+const int PWM_Forward_RV = 25;     // GPIO4
 const int PWM_Back_RV    = 26;    // GPIO16
 const int PWM_Forward_LV = 33;     // GPIO2
 const int PWM_Back_LV    = 32;    // GPIO15
 
-const int PWM_Forward_RA = 0;     // GPIO
-const int PWM_Back_RA    = 0;    // GPIO
-const int PWM_Forward_LA = 0;     // GPIO
-const int PWM_Back_LA    = 0;    // GPIO
+const int PWM_Forward_RA = 23;     // GPIO
+const int PWM_Back_RA    = 22;    // GPIO
+const int PWM_Forward_LA = 1;     // GPIO
+const int PWM_Back_LA    = 3;    // GPIO
 
 const int ENC_LF = 17;
 const int ENC_RF = 18;
