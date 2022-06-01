@@ -43,13 +43,13 @@ const int sensorOut = 4;
 
 const int PWM_Forward_RV = 25;     // GPIO4
 const int PWM_Back_RV    = 26;    // GPIO16
-const int PWM_Forward_LV = 33;     // GPIO2
-const int PWM_Back_LV    = 32;    // GPIO15
+const int PWM_Forward_LV = 22;     // GPIO2
+const int PWM_Back_LV    = 23;    // GPIO15
 
-const int PWM_Forward_RA = 23;     // GPIO
-const int PWM_Back_RA    = 22;    // GPIO
-const int PWM_Forward_LA = 1;     // GPIO
-const int PWM_Back_LA    = 3;    // GPIO
+const int PWM_Forward_RA = 3;     // GPIO
+const int PWM_Back_RA    = 1;    // GPIO
+const int PWM_Forward_LA = 33;     // GPIO
+const int PWM_Back_LA    = 32;    // GPIO
 
 const int ENC_LF = 17;
 const int ENC_RF = 18;
@@ -530,6 +530,36 @@ void loop() {
   }
   else if (millis() - lastTrigger_RB > 100){
     actualSpeed_RB = 0;
+  }
+
+  //Feedback of speed to remote
+  Communication.Status.Motor.speedLF = actualSpeed_LF;
+  Communication.Status.Motor.speedRF = actualSpeed_RF;
+  Communication.Status.Motor.speedLB = actualSpeed_LB;
+  Communication.Status.Motor.speedRB = actualSpeed_RB;
+  if (abs(Setpoint_LF - actualSpeed_LF) > 50){
+    Communication.Status.Motor.errorLF = true;
+  }
+  else {
+    Communication.Status.Motor.errorLF = false;
+  }
+  if (abs(Setpoint_RF - actualSpeed_RF) > 50){
+    Communication.Status.Motor.errorRF = true;
+  }
+  else {
+    Communication.Status.Motor.errorRF = false;
+  }
+  if (abs(Setpoint_LB - actualSpeed_LB) > 50){
+    Communication.Status.Motor.errorLB = true;
+  }
+  else {
+    Communication.Status.Motor.errorLB = false;
+  }
+  if (abs(Setpoint_RB - actualSpeed_RB) > 50){
+    Communication.Status.Motor.errorRB = true;
+  }
+  else {
+    Communication.Status.Motor.errorRB = false;
   }
   
   //Timer 2

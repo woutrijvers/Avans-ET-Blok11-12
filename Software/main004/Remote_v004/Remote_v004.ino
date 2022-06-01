@@ -18,7 +18,7 @@ const int modus = 0;  //Remote = 0, Car = 1
 //Debug levels
 #define DEBUG1 0
 #define DEBUG2 0
-#define DEBUG3 1
+#define DEBUG3 0
 
 
 /*-Timer initialisations------------------------------------------------------*/
@@ -423,14 +423,12 @@ void loop() {
     //Sent control struct
     // Send message via ESP-NOW
     esp_err_t result = esp_now_send(receiverAddress, (uint8_t *) &Communication, sizeof(Communication));
-    if (DEBUG3 == 1){ 
-      if (result != ESP_OK) {
-        Serial.println("Error sending the data");
-        W1_upload = millis();
-      }
-      else if (result == ESP_OK){
-        lastUpload = millis();
-      }
+    if (result != ESP_OK) {
+      Serial.println("Error sending the data");
+      W1_upload = millis();
+    }
+    else if (result == ESP_OK){
+      lastUpload = millis();
     }
 
     if ((millis() - W1_upload) < (T1_interval*20)){
@@ -453,6 +451,30 @@ void loop() {
     Serial.print(",");
     Serial.print("B:");
     Serial.println(Communication.Status.Color.blue);*/
+
+    Serial.print("speedLF:");
+    Serial.print(Communication.Status.Motor.speedLF);
+    Serial.print(",");
+    Serial.print("errorLF:");
+    Serial.print(Communication.Status.Motor.errorLF);
+    Serial.print(",");
+    Serial.print("speedRF:");
+    Serial.print(Communication.Status.Motor.speedRF);
+    Serial.print(",");
+    Serial.print("errorRF:");
+    Serial.print(Communication.Status.Motor.errorRF);
+    Serial.print(",");
+    Serial.print("speedLB:");
+    Serial.print(Communication.Status.Motor.speedLB);
+    Serial.print(",");
+    Serial.print("errorLB:");
+    Serial.print(Communication.Status.Motor.errorLB);
+    Serial.print(",");
+    Serial.print("speedRB:");
+    Serial.print(Communication.Status.Motor.speedRB);
+    Serial.print(",");
+    Serial.print("errorRB:");
+    Serial.println(Communication.Status.Motor.errorRB);
     
     //State machine
     switch (State)
