@@ -72,7 +72,7 @@ LiquidCrystal_I2C lcd(0x27, lcdColumns, lcdRows);
 bool Puzzle1, Puzzle2, Puzzle3;
 bool Level1, Level2, Level3;
 int speedStraight;
-int deadZone = 30;
+int deadZone = 38;
 
 //Questions
 typedef struct Question_struct
@@ -452,11 +452,17 @@ void loop() {
     Serial.print("B:");
     Serial.println(Communication.Status.Color.blue);*/
 
+    Serial.print("setpointLF:");
+    Serial.print(Communication.Control.Motor.speedLF);
+    Serial.print(",");
     Serial.print("speedLF:");
     Serial.print(Communication.Status.Motor.speedLF);
     Serial.print(",");
     Serial.print("errorLF:");
     Serial.print(Communication.Status.Motor.errorLF);
+    Serial.print(",");
+    Serial.print("setpointRF:");
+    Serial.print(Communication.Control.Motor.speedRF);
     Serial.print(",");
     Serial.print("speedRF:");
     Serial.print(Communication.Status.Motor.speedRF);
@@ -464,11 +470,17 @@ void loop() {
     Serial.print("errorRF:");
     Serial.print(Communication.Status.Motor.errorRF);
     Serial.print(",");
+    Serial.print("setpointLB:");
+    Serial.print(Communication.Control.Motor.speedLB);
+    Serial.print(",");
     Serial.print("speedLB:");
     Serial.print(Communication.Status.Motor.speedLB);
     Serial.print(",");
     Serial.print("errorLB:");
     Serial.print(Communication.Status.Motor.errorLB);
+    Serial.print(",");
+    Serial.print("setpointRB:");
+    Serial.print(Communication.Control.Motor.speedRB);
     Serial.print(",");
     Serial.print("speedRB:");
     Serial.print(Communication.Status.Motor.speedRB);
@@ -750,14 +762,14 @@ void loop() {
   int X4 = map(x4, 0, 4095, -255, 255);
   int Y4 = map(y4, 0, 4095, -255, 255);
   
-  if (abs(X1) < 30) X1 = 0;
-  if (abs(Y1) < 30) Y1 = 0;
-  if (abs(X2) < 30) X2 = 0;
-  if (abs(Y2) < 30) Y2 = 0;
-  if (abs(X3) < 30) X3 = 0;
-  if (abs(Y3) < 30) Y3 = 0;
-  if (abs(X4) < 30) X4 = 0;
-  if (abs(Y4) < 30) Y4 = 0;
+  if (abs(X1) < deadZone) X1 = 0;
+  if (abs(Y1) < deadZone) Y1 = 0;
+  if (abs(X2) < deadZone) X2 = 0;
+  if (abs(Y2) < deadZone) Y2 = 0;
+  if (abs(X3) < deadZone) X3 = 0;
+  if (abs(Y3) < deadZone) Y3 = 0;
+  if (abs(X4) < deadZone) X4 = 0;
+  if (abs(Y4) < deadZone) Y4 = 0;
   
   //Save joystick values to motor control
   if (State == _READY or State == _RUNNING){

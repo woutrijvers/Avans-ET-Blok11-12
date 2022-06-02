@@ -51,9 +51,9 @@ const int PWM_Back_RA    = 1;    // GPIO
 const int PWM_Forward_LA = 33;     // GPIO
 const int PWM_Back_LA    = 32;    // GPIO
 
-const int ENC_LF = 17;
-const int ENC_RF = 18;
-const int ENC_LB = 19;
+const int ENC_LF = 27;
+const int ENC_RF = 19;
+const int ENC_LB = 14;
 const int ENC_RB = 21;
 
 /*-Global-variables-initialisation--------------------------------------------*/
