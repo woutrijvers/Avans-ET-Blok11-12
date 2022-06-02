@@ -41,13 +41,13 @@ const int S2 = 16;
 const int S3 = 15; 
 const int sensorOut = 4; 
 
-const int PWM_Forward_RV = 25;     // 
-const int PWM_Back_RV    = 26;    // 
+const int PWM_Forward_RV = 3;     // 
+const int PWM_Back_RV    = 1;    // 
 const int PWM_Forward_LV = 33;     // 
 const int PWM_Back_LV    = 32;    //
 
-const int PWM_Forward_RA = 3;//3;     // RX UART
-const int PWM_Back_RA    = 1;//1;    // TX UART
+const int PWM_Forward_RA = 25;//3;     // RX UART
+const int PWM_Back_RA    = 26;//1;    // TX UART
 const int PWM_Forward_LA = 22;     // 
 const int PWM_Back_LA    = 23;    // 
 

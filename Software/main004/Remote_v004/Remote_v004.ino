@@ -502,31 +502,31 @@ void loop() {
         lcd.print("                    ");
 
         //Init questions (max 40 characters)
-        questions[0].question = "Vraag nummer 0?";
+        questions[0].question = "(3 % 2) == 1";
         questions[0].answer = true;
         questions[0].answered = false;
       
-        questions[1].question = "Vraag nummer 1 op 2 regels?";
-        questions[1].answer = true;
+        questions[1].question = "Een integer kan komma getallen bevatten";
+        questions[1].answer = false;
         questions[1].answered = false;
       
-        questions[2].question = "Vraag nummer 2?";
-        questions[2].answer = true;
+        questions[2].question = "De auto wordt aangestuurd met een PLC";
+        questions[2].answer = false;
         questions[2].answered = false;
         
-        questions[3].question = "Vraag nummer 3?";
+        questions[3].question = "Bij kortsluiting gaan hoge stromen lopen";
         questions[3].answer = true;
         questions[3].answered = false;
       
-        questions[4].question = "Vraag nummer 4?";
-        questions[4].answer = true;
+        questions[4].question = "Het elektriciteitsnet heeft een frequentie van 60Hz";
+        questions[4].answer = false;
         questions[4].answered = false;
         
-        questions[5].question = "Vraag nummer 5?";
+        questions[5].question = "Het techlab bevindt zich op de eerste verdieping";
         questions[5].answer = true;
         questions[5].answered = false;
         
-        questions[6].question = "Vraag nummer 6?";
+        questions[6].question = "Vanaf jaar 2 kies je een differientatie";
         questions[6].answer = true;
         questions[6].answered = false;
         
