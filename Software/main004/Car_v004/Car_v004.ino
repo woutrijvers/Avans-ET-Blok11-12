@@ -41,20 +41,20 @@ const int S2 = 16;
 const int S3 = 15; 
 const int sensorOut = 4; 
 
-const int PWM_Forward_RV = 25;     // GPIO4
-const int PWM_Back_RV    = 26;    // GPIO16
-const int PWM_Forward_LV = 22;     // GPIO2
-const int PWM_Back_LV    = 23;    // GPIO15
+const int PWM_Forward_RV = 25;     // 
+const int PWM_Back_RV    = 26;    // 
+const int PWM_Forward_LV = 33;     // 
+const int PWM_Back_LV    = 32;    //
 
-const int PWM_Forward_RA = 3;     // GPIO
-const int PWM_Back_RA    = 1;    // GPIO
-const int PWM_Forward_LA = 33;     // GPIO
-const int PWM_Back_LA    = 32;    // GPIO
+const int PWM_Forward_RA = 3;//3;     // RX UART
+const int PWM_Back_RA    = 1;//1;    // TX UART
+const int PWM_Forward_LA = 22;     // 
+const int PWM_Back_LA    = 23;    // 
 
 const int ENC_LF = 27;
-const int ENC_RF = 19;
+const int ENC_RF = 21;
 const int ENC_LB = 14;
-const int ENC_RB = 21;
+const int ENC_RB = 19;
 
 /*-Global-variables-initialisation--------------------------------------------*/
 esp_now_peer_info_t peerInfo;
@@ -156,8 +156,8 @@ double Setpoint_LB, Input_LB, Output_LB;
 double Setpoint_RB, Input_RB, Output_RB;
 
 //PID tuning parameters
-//double consKp=0.7, consKi=12, consKd=0.0001;
-double consKp=0.5, consKi=12, consKd=0.0005;
+//double consKp=0.15, consKi=0.2, consKd=0.005;
+double consKp=0.15, consKi=0.2, consKd=0.0008;
 PID PID_LF(&Input_LF, &Output_LF, &Setpoint_LF, consKp, consKi, consKd, P_ON_E, DIRECT);
 PID PID_RF(&Input_RF, &Output_RF, &Setpoint_RF, consKp, consKi, consKd, P_ON_E, DIRECT);
 PID PID_LB(&Input_LB, &Output_LB, &Setpoint_LB, consKp, consKi, consKd, P_ON_E, DIRECT);
@@ -561,40 +561,40 @@ void loop() {
   else {
     Communication.Status.Motor.errorRB = false;
   }
+
+  Setpoint_LF = map(abs(Communication.Control.Motor.speedLF), 0, 255, 0, maxSpeed);
+  Setpoint_RF = map(abs(Communication.Control.Motor.speedRF), 0, 255, 0, maxSpeed);
+  Setpoint_LB = map(abs(Communication.Control.Motor.speedLB), 0, 255, 0, maxSpeed);
+  Setpoint_RB = map(abs(Communication.Control.Motor.speedRB), 0, 255, 0, maxSpeed);
+  
+  Input_LF = actualSpeed_LF;
+  Input_RF = actualSpeed_RF;
+  Input_LB = actualSpeed_LB;
+  Input_RB = actualSpeed_RB;
+
+  PID_LF.Compute();
+  PID_RF.Compute();
+  PID_LB.Compute();
+  PID_RB.Compute();
+
+  Motor_LF = Output_LF;
+  Motor_RF = Output_RF;
+  Motor_LB = Output_LB;
+  Motor_RB = Output_RB;
   
   //Timer 2
   if ((millis() - T2_prevMs) > T2_interval){
     T2_prevMs = millis();
 
-    Setpoint_LF = map(abs(Communication.Control.Motor.speedLF), 0, 255, 0, maxSpeed);
-    Setpoint_RF = map(abs(Communication.Control.Motor.speedRF), 0, 255, 0, maxSpeed);
-    Setpoint_LB = map(abs(Communication.Control.Motor.speedLB), 0, 255, 0, maxSpeed);
-    Setpoint_RB = map(abs(Communication.Control.Motor.speedRB), 0, 255, 0, maxSpeed);
-    
-    Input_LF = actualSpeed_LF;
-    Input_RF = actualSpeed_RF;
-    Input_LB = actualSpeed_LB;
-    Input_RB = actualSpeed_RB;
-  
-    PID_LF.Compute();
-    PID_RF.Compute();
-    PID_LB.Compute();
-    PID_RB.Compute();
-  
-    Motor_LF = Output_LF;
-    Motor_RF = Output_RF;
-    Motor_LB = Output_LB;
-    Motor_RB = Output_RB;
-
     if (DEBUG2){
-      Serial.print("LF_SET:");
-      Serial.print(Setpoint_LF);
+      /*Serial.print("RB_SET:");
+      Serial.print(Setpoint_RB);
       Serial.print(",");
-      Serial.print("LF_IN:");
-      Serial.print(Input_LF);
+      Serial.print("RB_IN:");
+      Serial.print(Input_RB);
       Serial.print(",");
-      Serial.print("LF_OUT:");
-      Serial.print(Output_LF);
+      Serial.print("RB_OUT:");
+      Serial.print(Output_RB);
       Serial.print(",");
       Serial.print("RF_SET:");
       Serial.print(Setpoint_RF);
@@ -603,7 +603,25 @@ void loop() {
       Serial.print(Input_RF);
       Serial.print(",");
       Serial.print("RF_OUT:");
-      Serial.println(Output_RF);
+      Serial.println(Output_RF);*/
+
+      /*Serial.print("LB_SET:");
+      Serial.print(Setpoint_LB);
+      Serial.print(",");
+      Serial.print("LB_IN:");
+      Serial.print(Input_LB);
+      Serial.print(",");
+      Serial.print("LB_OUT:");
+      Serial.println(Output_LB);
+      Serial.print(",");*/
+      Serial.print("LF_SET:");
+      Serial.print(Setpoint_LF);
+      Serial.print(",");
+      Serial.print("LF_IN:");
+      Serial.print(Input_LF);
+      Serial.print(",");
+      Serial.print("LF_OUT:");
+      Serial.println(Output_LF);
     }
     
     //speedLF forward and backwards
@@ -774,7 +792,7 @@ void loop() {
   }
 
   //Upload/download safety
-   if ( ( (millis() - lastUpload) < 100) and ( (millis() - lastDownload) < 100) ){
+   if ( ( (millis() - lastUpload) < 300) and ( (millis() - lastDownload) < 300) ){
     //Upload+Download sign
     receiverError = false;
    }
