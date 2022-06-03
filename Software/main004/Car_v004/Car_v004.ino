@@ -41,15 +41,15 @@ const int S2 = 16;
 const int S3 = 15; 
 const int sensorOut = 4; 
 
-const int PWM_Forward_RV = 3;     // 
-const int PWM_Back_RV    = 1;    // 
-const int PWM_Forward_LV = 33;     // 
-const int PWM_Back_LV    = 32;    //
+const int PWM_Forward_RV = 3;//3;     // RX UART
+const int PWM_Back_RV    = 1;//1;    // TX UART 
+const int PWM_Forward_LV = 33;
+const int PWM_Back_LV    = 32;
 
-const int PWM_Forward_RA = 25;//3;     // RX UART
-const int PWM_Back_RA    = 26;//1;    // TX UART
-const int PWM_Forward_LA = 22;     // 
-const int PWM_Back_LA    = 23;    // 
+const int PWM_Forward_RA = 25;
+const int PWM_Back_RA    = 26;
+const int PWM_Forward_LA = 22;
+const int PWM_Back_LA    = 23;
 
 const int ENC_LF = 27;
 const int ENC_RF = 21;
@@ -577,6 +577,19 @@ void loop() {
   PID_LB.Compute();
   PID_RB.Compute();
 
+  if (Setpoint_LF == 0){
+    Output_LF = 0;
+  }
+  if (Setpoint_RF == 0){
+    Output_RF = 0;
+  }
+  if (Setpoint_LB == 0){
+    Output_LB = 0;
+  }
+  if (Setpoint_RB == 0){
+    Output_RB = 0;
+  }
+
   Motor_LF = Output_LF;
   Motor_RF = Output_RF;
   Motor_LB = Output_LB;
@@ -612,8 +625,8 @@ void loop() {
       Serial.print(Input_LB);
       Serial.print(",");
       Serial.print("LB_OUT:");
-      Serial.println(Output_LB);
-      Serial.print(",");*/
+      Serial.print(Output_LB);
+      Serial.print(",");
       Serial.print("LF_SET:");
       Serial.print(Setpoint_LF);
       Serial.print(",");
@@ -621,7 +634,7 @@ void loop() {
       Serial.print(Input_LF);
       Serial.print(",");
       Serial.print("LF_OUT:");
-      Serial.println(Output_LF);
+      Serial.println(Output_LF);*/
     }
     
     //speedLF forward and backwards

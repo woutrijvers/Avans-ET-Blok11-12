@@ -518,11 +518,11 @@ void loop() {
         questions[3].answer = true;
         questions[3].answered = false;
       
-        questions[4].question = "Het elektriciteitsnet heeft een frequentie van 60Hz";
+        questions[4].question = "Het net heeft een frequentie van 60Hz";
         questions[4].answer = false;
         questions[4].answered = false;
         
-        questions[5].question = "Het techlab bevindt zich op de eerste verdieping";
+        questions[5].question = "Het techlab zit op de 1e verdieping";
         questions[5].answer = true;
         questions[5].answered = false;
         
