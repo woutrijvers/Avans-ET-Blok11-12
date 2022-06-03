@@ -77,9 +77,9 @@ unsigned long lastUpload = 5000;
 unsigned long lastDownload = 5000;
 
 /*Calibration values (must be updated before   updated before each use)*/ 
-int redMin = 17857; int redMax = 47000; 
-int greenMin = 13333; int greenMax = 33333; 
-int blueMin = 18181; int blueMax = 41666;  
+int redMin = 16666; int redMax = 64000;       //int redMin = 17857; int redMax = 47000;
+int greenMin = 13333; int greenMax = 33333;
+int blueMin = 18181; int blueMax = 41666;
 
 int redColor = 0; int greenColor = 0; int blueColor = 0;  
 int redFrequency = 0; 
@@ -694,8 +694,6 @@ void loop() {
     }
   }
 
-  operatingMode = 8;
-
   switch (operatingMode){
     case 0:
     {    
@@ -721,6 +719,9 @@ void loop() {
       operatingMode+=1;
       Serial.print("R:");     
       Serial.print(Communication.Status.Color.red);
+      Serial.print(",");
+      Serial.print("FR:");     
+      Serial.print(redFrequency);
       Serial.print(",");
     }
     break;   
@@ -751,6 +752,9 @@ void loop() {
       Serial.print("G:");     
       Serial.print(Communication.Status.Color.green);
       Serial.print(",");
+      Serial.print("FG:");     
+      Serial.print(greenFrequency);
+      Serial.print(",");
     }  
     break;
 
@@ -775,33 +779,13 @@ void loop() {
       Communication.Status.Color.blue = mavg1_y;
 
       //Output of frequency mapped to 0-255
-      operatingMode+=1;
+      operatingMode=0;
       Serial.print("B:");     
       Serial.print(Communication.Status.Color.blue);
-      Serial.print(",");
-    }
-    break;      
-  }
-
-  if (DEBUG1){  
-      Serial.print("R:");     
-      Serial.print(redColor);
-      Serial.print(",");
-      Serial.print("G:");     
-      Serial.print(greenColor);
-      Serial.print(",");
-      Serial.print("B:");     
-      Serial.println(blueColor);
-  }
-  if (DEBUG3){  
-      Serial.print("FR:");     
-      Serial.print(redFrequency);
-      Serial.print(",");
-      Serial.print("FG:");     
-      Serial.print(greenFrequency);
-      Serial.print(",");
       Serial.print("FB:");     
       Serial.println(blueFrequency);
+    }
+    break;      
   }
 
   //Upload/download safety
