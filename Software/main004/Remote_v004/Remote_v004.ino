@@ -36,23 +36,27 @@ unsigned int T2_interval = 25; //millis
 unsigned long W1_upload = 5000;
 
 /*-I/O-pins-------------------------------------------------------------------*/
-int JoyStick_X1 = 39; // Analog Pin  X
-int JoyStick_Y1 = 36; // // Analog Pin  Y
-int JoyStick_X2 = 35; // Analog Pin  X
-int JoyStick_Y2 = 34; // // Analog Pin  Y
-int JoyStick_X3 = 33; // Analog Pin  X
-int JoyStick_Y3 = 32; // // Analog Pin  Y
-int JoyStick_X4 = 26; // Analog Pin  X
-int JoyStick_Y4 = 25; // // Analog Pin  Y
+int JoyStick_X1 = 32; // Analog Pin  X
+int JoyStick_Y1 = 34; // // Analog Pin  Y
+//bool Button_1 = 35; // Boolean Pin
+int JoyStick_X2 = 25; // Analog Pin  X
+int JoyStick_Y2 = 33; // // Analog Pin  Y
+//bool Button_2 = 13;//1; // Boolean Pin       //UART
+int JoyStick_X3 = 26; // Analog Pin  X
+int JoyStick_Y3 = 36; // // Analog Pin  Y
+//bool Button_3 = 5; // Boolean Pin
+int JoyStick_X4 = 2; // Analog Pin  X
+int JoyStick_Y4 = 39; // // Analog Pin  Y
+//bool Button_4 = 4; // Boolean Pin
 
 int Buzzer = 15; //Digital buzzer pin
 
-int LED1 = 2;
-int LED2 = 4;
-int LED3 = 16;
-int PZL1 = 27;
-int PZL2 = 14;
-int PZL3 = 12;
+int LED1 = 23;
+int LED2 = 22;
+int LED3 = 21;
+int PZL1 = 19;
+int PZL2 = 18;
+int PZL3 = 17;
 
 
 /*-Global-variables-initialisation--------------------------------------------*/
@@ -73,6 +77,9 @@ bool Puzzle1, Puzzle2, Puzzle3;
 bool Level1, Level2, Level3;
 int speedStraight;
 int deadZone = 38;
+
+//Joysticks
+bool button1, button2, button3, button4;
 
 //Questions
 typedef struct Question_struct
@@ -354,6 +361,10 @@ void setup() {
   pinMode(JoyStick_Y3, INPUT);
   pinMode(JoyStick_X4, INPUT);
   pinMode(JoyStick_Y4, INPUT);
+  //pinMode(Button_1, INPUT);
+  //pinMode(Button_2, INPUT);
+  //pinMode(Button_3, INPUT);
+  //pinMode(Button_4, INPUT);
   pinMode(Buzzer, OUTPUT); // Set Buzzer - pin 9 as an output
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
@@ -443,16 +454,16 @@ void loop() {
   if ((millis() - T2_prevMs) > T2_interval) {
     T2_prevMs = millis();
 
-    /*Serial.print("R:");
+    Serial.print("R:");
     Serial.print(Communication.Status.Color.red);
     Serial.print(",");
     Serial.print("G:");
     Serial.print(Communication.Status.Color.green);
     Serial.print(",");
     Serial.print("B:");
-    Serial.println(Communication.Status.Color.blue);*/
+    Serial.println(Communication.Status.Color.blue);
 
-    Serial.print("setpointLF:");
+    /*Serial.print("setpointLF:");
     Serial.print(Communication.Control.Motor.speedLF);
     Serial.print(",");
     Serial.print("speedLF:");
@@ -486,7 +497,7 @@ void loop() {
     Serial.print(Communication.Status.Motor.speedRB);
     Serial.print(",");
     Serial.print("errorRB:");
-    Serial.println(Communication.Status.Motor.errorRB);
+    Serial.println(Communication.Status.Motor.errorRB);*/
     
     //State machine
     switch (State)
@@ -681,7 +692,7 @@ void loop() {
         lcd.setCursor(0, 1);
         lcd.print("-------Racing-------");
 
-        //Question answered?
+        /*//Question answered?
         if (answeredTrue or answeredFalse){
           questions[actQuestion].answered = true;
           //Boost or handicap
@@ -712,7 +723,7 @@ void loop() {
         else {
           lcd.setCursor(0, 2);
           lcd.print("Question to long...");
-        }
+        }*/
 
         if (false)
         {
@@ -751,6 +762,30 @@ void loop() {
   y3 = analogRead(JoyStick_Y3); //  Y3
   x4 = analogRead(JoyStick_X4); //  X4
   y4 = analogRead(JoyStick_Y4); //  Y4
+
+  /*Serial.print("x1:");
+  Serial.print(x1);
+  Serial.print(",");
+  Serial.print("y1:");
+  Serial.print(y1);
+  Serial.print(",");
+  Serial.print("x2:");
+  Serial.print(x2);
+  Serial.print(",");
+  Serial.print("y2:");
+  Serial.print(y2);
+  Serial.print(",");
+  Serial.print("x3:");
+  Serial.print(x3);
+  Serial.print(",");
+  Serial.print("y3:");
+  Serial.print(y3);
+  Serial.print(",");
+  Serial.print("x4:");
+  Serial.print(x4);
+  Serial.print(",");
+  Serial.print("y4:");
+  Serial.println(y4);*/
   
   //Map joystick values
   int X1 = map(x1, 0, 4095, -255, 255);
