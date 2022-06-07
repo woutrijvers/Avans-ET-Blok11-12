@@ -41,8 +41,8 @@ const int S2 = 16;
 const int S3 = 15; 
 const int sensorOut = 4; 
 
-const int PWM_Forward_RV = 3;//3;     // RX UART
-const int PWM_Back_RV    = 1;//1;    // TX UART 
+const int PWM_Forward_RV = 0;//3;     // RX UART
+const int PWM_Back_RV    = 0;//1;    // TX UART 
 const int PWM_Forward_LV = 33;
 const int PWM_Back_LV    = 32;
 
@@ -77,9 +77,9 @@ unsigned long lastUpload = 5000;
 unsigned long lastDownload = 5000;
 
 /*Calibration values (must be updated before   updated before each use)*/ 
-int redMin = 16666; int redMax = 64000;       //int redMin = 17857; int redMax = 47000;
-int greenMin = 13333; int greenMax = 33333;
-int blueMin = 18181; int blueMax = 41666;
+int redMin = 8000; int redMax = 47000;       
+int greenMin = 7600; int greenMax = 30000;
+int blueMin = 9000; int blueMax = 34200;
 
 int redColor = 0; int greenColor = 0; int blueColor = 0;  
 int redFrequency = 0; 
@@ -702,7 +702,7 @@ void loop() {
       digitalWrite(S3, LOW);       
       
       //Frequency measurement of the specified color and its as-signment to an RGB value between 0-255     
-      float(redEdgeTime) = pulseIn(sensorOut, HIGH, 50000) + pulseIn(sensorOut, LOW, 50000);     float(redFrequency) = (1 / (redEdgeTime / 1000000));     
+      float(redEdgeTime) = pulseIn(sensorOut, HIGH, 100000) + pulseIn(sensorOut, LOW, 100000);     float(redFrequency) = (1 / (redEdgeTime / 1000000));     
       redColor = map(redFrequency, redMax, redMin, 255, 0);     if (redColor > 255) {       redColor = 255;     }     if (redColor < 0) {       redColor = 0;     }     
       
       //Moving average FIR
@@ -720,9 +720,9 @@ void loop() {
       Serial.print("R:");     
       Serial.print(Communication.Status.Color.red);
       Serial.print(",");
-      Serial.print("FR:");     
+      /*Serial.print("FR:");     
       Serial.print(redFrequency);
-      Serial.print(",");
+      Serial.print(",");*/
     }
     break;   
 
@@ -732,7 +732,7 @@ void loop() {
       digitalWrite(S3, HIGH);     
       
       //Frequency measurement of the specified color and its as-signment to an RGB value between 0-255
-      float(greenEdgeTime) = pulseIn(sensorOut, HIGH, 50000) + pulseIn(sensorOut, LOW, 50000);     
+      float(greenEdgeTime) = pulseIn(sensorOut, HIGH, 100000) + pulseIn(sensorOut, LOW, 100000);     
       float(greenFrequency) = (1 / (greenEdgeTime / 1000000));     
       greenColor = map(greenFrequency, greenMax, greenMin, 255, 0);     if (greenColor > 255) {       greenColor = 255;     }     
       if (greenColor < 0) {       greenColor = 0;     }     
@@ -752,9 +752,9 @@ void loop() {
       Serial.print("G:");     
       Serial.print(Communication.Status.Color.green);
       Serial.print(",");
-      Serial.print("FG:");     
+      /*Serial.print("FG:");     
       Serial.print(greenFrequency);
-      Serial.print(",");
+      Serial.print(",");*/
     }  
     break;
 
@@ -764,7 +764,7 @@ void loop() {
       digitalWrite(S3, HIGH);     
       
       //Frequency measurement of the specified color and its as-signment to an RGB value between 0-255  
-      float(blueEdgeTime) = pulseIn(sensorOut, HIGH, 50000) + pulseIn(sensorOut, LOW, 50000);     
+      float(blueEdgeTime) = pulseIn(sensorOut, HIGH, 100000) + pulseIn(sensorOut, LOW, 100000);     
       float(blueFrequency) = (1 / (blueEdgeTime / 1000000));     blueColor = map(blueFrequency, blueMax, blueMin, 255, 0);     
       if (blueColor > 255) {       blueColor = 255;     }     if (blueColor < 0) {       blueColor = 0;     }     
       
@@ -781,9 +781,9 @@ void loop() {
       //Output of frequency mapped to 0-255
       operatingMode=0;
       Serial.print("B:");     
-      Serial.print(Communication.Status.Color.blue);
-      Serial.print("FB:");     
-      Serial.println(blueFrequency);
+      Serial.println(Communication.Status.Color.blue);
+      /*Serial.print("FB:");     
+      Serial.println(blueFrequency);*/
     }
     break;      
   }
