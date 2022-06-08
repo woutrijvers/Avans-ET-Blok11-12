@@ -41,8 +41,8 @@ const int S2 = 16;
 const int S3 = 15; 
 const int sensorOut = 4; 
 
-const int PWM_Forward_RV = 0;//3;     // RX UART
-const int PWM_Back_RV    = 0;//1;    // TX UART 
+const int PWM_Forward_RV = 3;//3;     // RX UART
+const int PWM_Back_RV    = 1;//1;    // TX UART 
 const int PWM_Forward_LV = 33;
 const int PWM_Back_LV    = 32;
 
@@ -104,7 +104,7 @@ const int resolution = 8;
 unsigned long now = millis();
 float perimeterF = 20000.0; //Hz
 int perimeterWheel = 215; //mm
-int maxSpeed = 600;
+int maxSpeed = 580;
 
 //Moving Average FIR
 float mavg1_LF[5] = { 0 };
@@ -635,6 +635,18 @@ void loop() {
       Serial.print(",");
       Serial.print("LF_OUT:");
       Serial.println(Output_LF);*/
+      
+      /*Serial.print("RF_SET:");
+      Serial.print(Setpoint_RF);
+      Serial.print(",");
+      Serial.print("RB_SET:");
+      Serial.print(Setpoint_RB);
+      Serial.print(",");
+      Serial.print("LF_SET:");
+      Serial.print(Setpoint_LF);
+      Serial.print(",");
+      Serial.print("LB_SET:");
+      Serial.println(Setpoint_LB);*/
     }
     
     //speedLF forward and backwards
@@ -702,7 +714,7 @@ void loop() {
       digitalWrite(S3, LOW);       
       
       //Frequency measurement of the specified color and its as-signment to an RGB value between 0-255     
-      float(redEdgeTime) = pulseIn(sensorOut, HIGH, 100000) + pulseIn(sensorOut, LOW, 100000);     float(redFrequency) = (1 / (redEdgeTime / 1000000));     
+      float(redEdgeTime) = pulseIn(sensorOut, HIGH, 5000) + pulseIn(sensorOut, LOW, 5000);     float(redFrequency) = (1 / (redEdgeTime / 1000000));     
       redColor = map(redFrequency, redMax, redMin, 255, 0);     if (redColor > 255) {       redColor = 255;     }     if (redColor < 0) {       redColor = 0;     }     
       
       //Moving average FIR
@@ -717,9 +729,9 @@ void loop() {
 
       //Output of frequency mapped to 0-255
       operatingMode+=1;
-      Serial.print("R:");     
+      /*Serial.print("R:");     
       Serial.print(Communication.Status.Color.red);
-      Serial.print(",");
+      Serial.print(",");*/
       /*Serial.print("FR:");     
       Serial.print(redFrequency);
       Serial.print(",");*/
@@ -732,7 +744,7 @@ void loop() {
       digitalWrite(S3, HIGH);     
       
       //Frequency measurement of the specified color and its as-signment to an RGB value between 0-255
-      float(greenEdgeTime) = pulseIn(sensorOut, HIGH, 100000) + pulseIn(sensorOut, LOW, 100000);     
+      float(greenEdgeTime) = pulseIn(sensorOut, HIGH, 5000) + pulseIn(sensorOut, LOW, 5000);     
       float(greenFrequency) = (1 / (greenEdgeTime / 1000000));     
       greenColor = map(greenFrequency, greenMax, greenMin, 255, 0);     if (greenColor > 255) {       greenColor = 255;     }     
       if (greenColor < 0) {       greenColor = 0;     }     
@@ -749,9 +761,9 @@ void loop() {
 
       //Output of frequency mapped to 0-255
       operatingMode+=1;
-      Serial.print("G:");     
+      /*Serial.print("G:");     
       Serial.print(Communication.Status.Color.green);
-      Serial.print(",");
+      Serial.print(",");*/
       /*Serial.print("FG:");     
       Serial.print(greenFrequency);
       Serial.print(",");*/
@@ -764,7 +776,7 @@ void loop() {
       digitalWrite(S3, HIGH);     
       
       //Frequency measurement of the specified color and its as-signment to an RGB value between 0-255  
-      float(blueEdgeTime) = pulseIn(sensorOut, HIGH, 100000) + pulseIn(sensorOut, LOW, 100000);     
+      float(blueEdgeTime) = pulseIn(sensorOut, HIGH, 5000) + pulseIn(sensorOut, LOW, 5000);     
       float(blueFrequency) = (1 / (blueEdgeTime / 1000000));     blueColor = map(blueFrequency, blueMax, blueMin, 255, 0);     
       if (blueColor > 255) {       blueColor = 255;     }     if (blueColor < 0) {       blueColor = 0;     }     
       
@@ -780,8 +792,8 @@ void loop() {
 
       //Output of frequency mapped to 0-255
       operatingMode=0;
-      Serial.print("B:");     
-      Serial.println(Communication.Status.Color.blue);
+      /*Serial.print("B:");     
+      Serial.println(Communication.Status.Color.blue);*/
       /*Serial.print("FB:");     
       Serial.println(blueFrequency);*/
     }

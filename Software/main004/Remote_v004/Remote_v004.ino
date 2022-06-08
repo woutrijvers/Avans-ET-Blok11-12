@@ -32,6 +32,10 @@ unsigned int T1_interval = 5; //millis
 unsigned long T2_prevMs = 0; //millis
 unsigned int T2_interval = 25; //millis
 
+//Timer 1
+unsigned long T3_prevMs = 0; //millis
+unsigned int T3_interval = 500; //millis
+
 //Broadcast-Error Watchdog
 unsigned long W1_upload = 5000;
 
@@ -45,18 +49,18 @@ int JoyStick_Y2 = 33; // // Analog Pin  Y
 int JoyStick_X3 = 26; // Analog Pin  X
 int JoyStick_Y3 = 36; // // Analog Pin  Y
 //bool Button_3 = 5; // Boolean Pin
-int JoyStick_X4 = 2; // Analog Pin  X
+int JoyStick_X4 = 2; // Analog Pin  X   
 int JoyStick_Y4 = 39; // // Analog Pin  Y
 //bool Button_4 = 4; // Boolean Pin
 
 int Buzzer = 15; //Digital buzzer pin
 
-int LED1 = 23;
-int LED2 = 22;
-int LED3 = 21;
-int PZL1 = 19;
-int PZL2 = 18;
-int PZL3 = 17;
+int LED1 = 14;
+int LED2 = 16;
+int LED3 = 17;
+int PZL1 = 18;
+int PZL2 = 23;
+int PZL3 = 12;
 
 
 /*-Global-variables-initialisation--------------------------------------------*/
@@ -373,6 +377,8 @@ void setup() {
   pinMode(PZL2, INPUT);
   pinMode(PZL3, INPUT);
 
+  randomSeed(analogRead(0));
+
   // initialize LCD
   lcd.init();
   // turn on LCD backlight                      
@@ -454,14 +460,14 @@ void loop() {
   if ((millis() - T2_prevMs) > T2_interval) {
     T2_prevMs = millis();
 
-    Serial.print("R:");
+    /*Serial.print("R:");
     Serial.print(Communication.Status.Color.red);
     Serial.print(",");
     Serial.print("G:");
     Serial.print(Communication.Status.Color.green);
     Serial.print(",");
     Serial.print("B:");
-    Serial.println(Communication.Status.Color.blue);
+    Serial.println(Communication.Status.Color.blue);*/
 
     /*Serial.print("setpointLF:");
     Serial.print(Communication.Control.Motor.speedLF);
@@ -513,52 +519,48 @@ void loop() {
         lcd.print("                    ");
 
         //Init questions (max 40 characters)
-        questions[0].question = "(3 % 2) == 1";
+        questions[0].question = "Vraag0?";
         questions[0].answer = true;
         questions[0].answered = false;
       
-        questions[1].question = "Een integer kan komma getallen bevatten";
-        questions[1].answer = false;
+        questions[1].question = "Vraag1?";
+        questions[1].answer = true;
         questions[1].answered = false;
       
-        questions[2].question = "De auto wordt aangestuurd met een PLC";
-        questions[2].answer = false;
+        questions[2].question = "Vraag2?";
+        questions[2].answer = true;
         questions[2].answered = false;
         
-        questions[3].question = "Bij kortsluiting gaan hoge stromen lopen";
+        questions[3].question = "Vraag3?";
         questions[3].answer = true;
         questions[3].answered = false;
       
-        questions[4].question = "Het net heeft een frequentie van 60Hz";
-        questions[4].answer = false;
+        questions[4].question = "Vraag4?";
+        questions[4].answer = true;
         questions[4].answered = false;
         
-        questions[5].question = "Het techlab zit op de 1e verdieping";
+        questions[5].question = "Vraag5?";
         questions[5].answer = true;
         questions[5].answered = false;
         
-        questions[6].question = "Vanaf jaar 2 kies je een differientatie";
+        questions[6].question = "Vraag6?";
         questions[6].answer = true;
         questions[6].answered = false;
         
-        questions[7].question = "Vraag nummer 7?";
+        questions[7].question = "Vraag7?";
         questions[7].answer = true;
         questions[7].answered = false;
         
-        questions[8].question = "Vraag nummer 8?";
+        questions[8].question = "Vraag8?";
         questions[8].answer = true;
         questions[8].answered = false;
         
-        questions[9].question = "Vraag nummer 9?";
+        questions[9].question = "Vraag9?";
         questions[9].answer = true;
         questions[9].answered = false;
-        
-        questions[10].question = "Vraag nummer 10?";
-        questions[10].answer = true;
-        questions[10].answered = false;
       
         //Startup random question
-        actQuestion = byte(random(0, 11));
+        actQuestion = byte(random(0, 10));
 
         //Save joystick values to motor control
         Communication.Control.Motor.speedLF = 0;
@@ -601,7 +603,7 @@ void loop() {
         Communication.Control.Motor.speedLB = 0;
         Communication.Control.Motor.speedRB = 0;
 
-        State = _PUZZLE;
+        State = _PUZZLE;  //puzzle todo
       break;
       }
 
@@ -619,19 +621,19 @@ void loop() {
         Puzzle2 = digitalRead(PZL2);
         Puzzle3 = digitalRead(PZL3);
 
-        if (Puzzle1) Level1 = true;
+        if (Puzzle1 == 0) Level1 = true;
         else {
           Level1 = false;
           Level2 = false;
           Level3 = false;
         }
         
-        if (Puzzle1 and Puzzle2) Level2 = true;
+        if ((Puzzle1 and Puzzle2) == 0) Level2 = true;
         else {
           Level2 = false;
           Level3 = false;
         }
-        if (Puzzle1 and Puzzle2 and Puzzle3) Level3 = true;
+        if ((Puzzle1 and Puzzle2 and Puzzle3) == 0) Level3 = true;
         else Level3 = false;
         
         if(Puzzle1 == LOW){
@@ -659,7 +661,7 @@ void loop() {
         Communication.Control.Motor.speedLB = 0;
         Communication.Control.Motor.speedRB = 0;
 
-        if ((Puzzle1 || Puzzle2 || Puzzle3) == 0)  //All puzzles correct
+        if ((Level1 || Level2 || Level3) == true)  //At least 1 puzzel correct
         {
           State = _READY;
         }
@@ -674,11 +676,7 @@ void loop() {
         lcd.setCursor(0, 2);
         lcd.print("                    ");
         lcd.setCursor(0, 3);
-        lcd.print("                    ");
-        
-        Serial.print(Level1);
-        Serial.print(Level2);
-        Serial.println(Level3);        
+        lcd.print("                    ");    
 
         if (true)  //finishDetected
         {
@@ -690,23 +688,59 @@ void loop() {
       //RUNNING STATE
       case _RUNNING: {
         lcd.setCursor(0, 1);
-        lcd.print("-------Racing-------");
+        lcd.print("--Racing-- ");
 
-        /*//Question answered?
-        if (answeredTrue or answeredFalse){
+        //Timer 2
+        if ((millis() - T3_prevMs) > T3_interval) {
+          T3_prevMs = millis();
+          
+          //Calculate average speed
+          int averageSpeed = ((Communication.Status.Motor.speedLF+Communication.Status.Motor.speedRF+Communication.Status.Motor.speedLB+Communication.Status.Motor.speedRB)/4);
+          lcd.setCursor(11, 1);
+          lcd.print("V=");
+          if (averageSpeed == 0){
+            lcd.setCursor(13, 1);
+            lcd.print("   ");
+          }
+          else {
+            lcd.setCursor(13, 1);
+            lcd.print(averageSpeed);
+          }
+          lcd.setCursor(16, 1);
+          lcd.print("mm/s");
+
+          //Colorsensor print
+          lcd.setCursor(17, 3);
+          lcd.print(answeredTrue);
+          lcd.setCursor(18, 3);
+          lcd.print(answeredFalse);
+          lcd.setCursor(19, 3);
+          lcd.print(finished);
+        }
+
+        //Question answered?
+        if (answeredTrue || answeredFalse){
           questions[actQuestion].answered = true;
           //Boost or handicap
           if (questions[actQuestion].answer and answeredTrue){
-            //Boost             
+            //Boost
+            lcd.setCursor(0, 3);
+            lcd.print("Boost!           ");          
           }
           else if (questions[actQuestion].answer and answeredFalse){
-            //Handicap             
+            //Handicap
+            lcd.setCursor(0, 3);
+            lcd.print("Handicap!        ");            
+          }
+          else{
+            lcd.setCursor(0, 3);
+            lcd.print("                 "); 
           }
         }
 
         //New question
-        while (questions[actQuestion].answered == true){ 
-          actQuestion = byte(random(0, 11));
+        if (questions[actQuestion].answered == true){ 
+          actQuestion = byte(random(0, 9));
         }
         
         //Display question
@@ -723,7 +757,7 @@ void loop() {
         else {
           lcd.setCursor(0, 2);
           lcd.print("Question to long...");
-        }*/
+        }
 
         if (false)
         {
@@ -737,20 +771,25 @@ void loop() {
   //RGB gemiddelde berekenen
   averageRGB = ( (Communication.Status.Color.red + Communication.Status.Color.green + Communication.Status.Color.blue) / 3);
   //Kleuren rood, groen en zwart detecteren
-  if(abs(averageRGB - Communication.Status.Color.red) > 50){
+  if(abs(((Communication.Status.Color.green + Communication.Status.Color.blue) / 2) - Communication.Status.Color.red) > 85){
     answeredTrue = false;
     answeredFalse = true;
     finished = false;
   }
-  else if(abs(averageRGB - Communication.Status.Color.green) > 50){
+  else if(abs(((Communication.Status.Color.red + Communication.Status.Color.blue) / 2) - Communication.Status.Color.green) > 70){
     answeredTrue = true;
     answeredFalse = false;
     finished = false;
   }
-  else if(abs(averageRGB) < 50){
+  else if((abs(averageRGB) < 50) and averageRGB != 0){
     answeredTrue = false;
     answeredFalse = false;
     finished = true;
+  }
+  else{
+    answeredTrue = false;
+    answeredFalse = false;
+    finished = false;
   }
 
   int x1, y1, x2, y2, x3, y3, x4, y4;
@@ -874,7 +913,7 @@ void loop() {
       Communication.Control.Motor.speedRB = 0;
     }
   }
-    else if (true){
+    else if (Level2){
       Communication.Control.Motor.speedLF = Y1;
       Communication.Control.Motor.speedRF = Y2;
       Communication.Control.Motor.speedLB = Y1;
